@@ -15,15 +15,15 @@ Existing tutorial sample implementations from corda :
 https://github.com/corda/samples <br>
 https://github.com/synechron-finlabs/Three-parties-DvP-Atomic-TX-CorDapp
 
+<h2>Development
 
-<h3>The three stages
+<h4>The three stages
 
 1. Contract establishment  (optional or left for later )
 1. IOU creation from the seller and acceptance by buyer
 1. Payment vs delivery 
     1. Additional node which handles payment vs delivery atomic transaction
 
-<h2>Development
 
 <h4>Begin with stage 2
 
@@ -32,6 +32,7 @@ https://github.com/synechron-finlabs/Three-parties-DvP-Atomic-TX-CorDapp
 1. https://github.com/corda/corda-tut2-solution-java
 
 <h5>Sequence of process : Seller creating IOU stating buyer owes him X amount
+
 1. Seller initiates (Initiator flow)
 1. Seller uploads invoice
 1. Seller creates IOU by adding the amount  and other state attributes => transaction building
@@ -41,7 +42,7 @@ https://github.com/synechron-finlabs/Three-parties-DvP-Atomic-TX-CorDapp
     1. implement responder(other party) logic of "buyer verifying transaction" and signing
 1. Finality flow => adding to blockchain
     
-<h4>Tasks to be completed by
+<h4>Tasks to be completed
 
 **A MUST COMPLETE TASK : Training (Backlog) completion : 
  https://docs.corda.net/index.html
@@ -55,7 +56,7 @@ https://github.com/synechron-finlabs/Three-parties-DvP-Atomic-TX-CorDapp
         3. add a new field : View invoice on buyer (could exist for seller as well!)
         Add/remove tasks as necessary 
         
-    Back end :
+    Back end and application :
         1. Adding invoice as attachment in the IOU transaction
         2. review/ad/remove verify strategies defined 
         3. To be edited after the understanding the existing code from basis
