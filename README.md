@@ -1,44 +1,49 @@
-# Smart-Invoice
+<h1>Smart-Invoice
 
 Smart invoice system using Blockchains
 
-# Template
-Template to be used for this application : A Java CorDapp Template.
-- https://github.com/corda/corda-tut2-solution-java
+<h2> Template
+
+Template to be used for this application : A Java CorDapp Template.<br>
+https://github.com/corda/corda-tut2-solution-java
 
 
-#Basis of this project :
-existing tutorial sample implementations from corda :
+<h2>Basis of this project
 
-https://github.com/corda/samples
+Existing tutorial sample implementations from corda :
+
+https://github.com/corda/samples <br>
 https://github.com/synechron-finlabs/Three-parties-DvP-Atomic-TX-CorDapp
 
 
-#The three stages
-    1. Contract establishment  (optional or left for later )
-    2. IOU creation from the seller and acceptance by buyer
-    3. Payment vs delivery 
-        - Additional node which handles payment vs delivery atomic transaction
+<h3>The three stages
 
-#Development
+1. Contract establishment  (optional or left for later )
+1. IOU creation from the seller and acceptance by buyer
+1. Payment vs delivery 
+    1. Additional node which handles payment vs delivery atomic transaction
 
-- Begin with stage 2 :
-    - https://github.com/corda/samples/cordapp-example
-    - Basis : https://github.com/corda/corda-tut2-solution-java
+<h2>Development
 
-##Sequence of process : Seller creating IOU stating buyer owes him X amount
-    1. Seller initiates (Initiator flow)
-    2. Seller uploads invoice
-    3. Seller creates IOU by adding the amount  and other state attributes => transaction building
-    4. Seller verifies => logic later
-    5. Seller signs the tx
-    6. Collects signatures
-        6.1. implement responder(other party) logic of "buyer verifying transaction" and signing
-    7. Finality flow => adding to blockchain
+<h4>Begin with stage 2
+
+*Basis* :
+1. https://github.com/corda/samples/cordapp-example
+1. https://github.com/corda/corda-tut2-solution-java
+
+<h5>Sequence of process : Seller creating IOU stating buyer owes him X amount
+1. Seller initiates (Initiator flow)
+1. Seller uploads invoice
+1. Seller creates IOU by adding the amount  and other state attributes => transaction building
+1. Seller verifies => logic later
+1. Seller signs the tx
+1. Collects signatures
+    1. implement responder(other party) logic of "buyer verifying transaction" and signing
+1. Finality flow => adding to blockchain
     
-#Tasks to be completed by :
+<h4>Tasks to be completed by
 
-** A MUST COMPLETE TASK : Training (Backlog) completion : 
+**A MUST COMPLETE TASK : Training (Backlog) completion : 
  https://docs.corda.net/index.html
  Complete the development modules until and including the tutorials section to continue the application development**
 
