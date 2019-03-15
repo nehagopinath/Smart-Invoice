@@ -1,4 +1,4 @@
-package com.synechron.cordapp.obligation.exception;
+package com.template.cordapp.exception;
 
 import kotlin.Metadata;
 import kotlin.jvm.internal.Intrinsics;

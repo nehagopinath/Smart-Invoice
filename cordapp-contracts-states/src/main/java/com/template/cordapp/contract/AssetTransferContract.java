@@ -1,4 +1,4 @@
-package com.synechron.cordapp.contract;
+package com.template.cordapp.contract;
 
 import java.util.Collection;
 import java.util.Set;

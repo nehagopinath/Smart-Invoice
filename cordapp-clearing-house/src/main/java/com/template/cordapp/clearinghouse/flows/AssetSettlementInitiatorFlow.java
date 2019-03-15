@@ -1,15 +1,15 @@
-package com.synechron.cordapp.clearinghouse.flows;
+package com.template.cordapp.clearinghouse.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.synechron.cordapp.common.exception.InvalidPartyException;
-import com.synechron.cordapp.common.flows.ReceiveTransactionUnVerifiedFlow;
-import com.synechron.cordapp.common.flows.IdentitySyncFlow.Send;
-import com.synechron.cordapp.contract.AssetTransferContract;
-import com.synechron.cordapp.contract.AssetTransferContract.Commands.SettleRequest;
-import com.synechron.cordapp.flows.AbstractAssetSettlementFlow;
-import com.synechron.cordapp.state.Asset;
-import com.synechron.cordapp.state.AssetTransfer;
-import com.synechron.cordapp.state.RequestStatus;
+import com.template.cordapp.common.exception.InvalidPartyException;
+import com.template.cordapp.common.flows.ReceiveTransactionUnVerifiedFlow;
+import com.template.cordapp.common.flows.IdentitySyncFlow.Send;
+import com.template.cordapp.contract.AssetTransferContract;
+import com.template.cordapp.contract.AssetTransferContract.Commands.SettleRequest;
+import com.template.cordapp.flows.AbstractAssetSettlementFlow;
+import com.template.cordapp.state.Asset;
+import com.template.cordapp.state.AssetTransfer;
+import com.template.cordapp.state.RequestStatus;
 import java.security.PublicKey;
 import java.time.Instant;
 import java.util.ArrayList;

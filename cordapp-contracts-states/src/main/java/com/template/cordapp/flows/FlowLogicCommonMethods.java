@@ -1,7 +1,7 @@
-package com.synechron.cordapp.flows;
+package com.template.cordapp.flows;
 
-import com.synechron.cordapp.obligation.exception.NotaryNotFoundException;
-import com.synechron.cordapp.obligation.exception.StateNotFoundOnVaultException;
+import com.template.cordapp.exception.NotaryNotFoundException;
+import com.template.cordapp.exception.StateNotFoundOnVaultException;
 import java.util.List;
 import java.util.Set;
 import kotlin.Metadata;

@@ -1,7 +1,7 @@
-package com.synechron.cordapp.contract;
+package com.template.cordapp.contract;
 
-import com.synechron.cordapp.state.Asset;
-import com.synechron.cordapp.state.AssetTransfer;
+import com.template.cordapp.state.Asset;
+import com.template.cordapp.state.AssetTransfer;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;

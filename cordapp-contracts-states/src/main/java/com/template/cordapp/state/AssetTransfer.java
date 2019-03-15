@@ -1,7 +1,7 @@
-package com.synechron.cordapp.state;
+package com.template.cordapp.state;
 
-import com.synechron.cordapp.schema.AssetTransferSchemaV1;
-import com.synechron.cordapp.schema.AssetTransferSchemaV1.PersistentAssetTransfer;
+import com.template.cordapp.schema.AssetTransferSchemaV1;
+import com.template.cordapp.schema.AssetTransferSchemaV1.PersistentAssetTransfer;
 import java.util.List;
 import java.util.UUID;
 import kotlin.Metadata;

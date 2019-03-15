@@ -1,6 +1,6 @@
-package com.synechron.cordapp.flows;
+package com.template.cordapp.flows;
 
-import com.synechron.cordapp.flows.FlowLogicCommonMethods.DefaultImpls;
+import com.template.cordapp.flows.FlowLogicCommonMethods.DefaultImpls;
 import kotlin.Metadata;
 import kotlin.jvm.internal.Intrinsics;
 import net.corda.core.contracts.StateAndRef;

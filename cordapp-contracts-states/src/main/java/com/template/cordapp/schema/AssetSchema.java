@@ -1,4 +1,4 @@
-package com.synechron.cordapp.schema;
+package com.template.cordapp.schema;
 
 import kotlin.Metadata;
 
