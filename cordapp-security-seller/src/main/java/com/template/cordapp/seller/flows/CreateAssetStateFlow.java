@@ -1,11 +1,11 @@
-package com.synechron.cordapp.seller.flows;
+package com.template.cordapp.seller.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.synechron.cordapp.contract.AssetContract;
-import com.synechron.cordapp.contract.AssetContract.Commands.Create;
-import com.synechron.cordapp.flows.FlowLogicCommonMethods;
-import com.synechron.cordapp.flows.FlowLogicCommonMethods.DefaultImpls;
-import com.synechron.cordapp.state.Asset;
+import com.template.cordapp.contract.AssetContract;
+import com.template.cordapp.contract.AssetContract.Commands.Create;
+import com.template.cordapp.flows.FlowLogicCommonMethods;
+import com.template.cordapp.flows.FlowLogicCommonMethods.DefaultImpls;
+import com.template.cordapp.state.Asset;
 import java.security.PublicKey;
 import java.time.Instant;
 import kotlin.Metadata;

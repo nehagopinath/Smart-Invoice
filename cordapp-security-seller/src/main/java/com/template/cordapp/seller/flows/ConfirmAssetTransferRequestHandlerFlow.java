@@ -1,9 +1,9 @@
-package com.synechron.cordapp.seller.flows;
+package com.template.cordapp.seller.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.synechron.cordapp.common.flows.SignTxFlow;
-import com.synechron.cordapp.common.flows.IdentitySyncFlow.Receive;
-import com.synechron.cordapp.flows.AbstractConfirmAssetTransferRequestFlow;
+import com.template.cordapp.common.flows.SignTxFlow;
+import com.template.cordapp.common.flows.IdentitySyncFlow.Receive;
+import com.template.cordapp.flows.AbstractConfirmAssetTransferRequestFlow;
 import kotlin.Metadata;
 import kotlin.jvm.internal.Intrinsics;
 import net.corda.core.flows.FlowLogic;

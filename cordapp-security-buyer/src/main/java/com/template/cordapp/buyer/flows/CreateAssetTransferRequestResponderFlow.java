@@ -1,7 +1,7 @@
-package com.synechron.cordapp.buyer.flows;
+package com.template.cordapp.buyer.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.synechron.cordapp.common.flows.SignTxFlow;
+import com.template.cordapp.common.flows.SignTxFlow;
 import com.synechron.cordapp.flows.AbstractCreateAssetTransferRequestFlow;
 import kotlin.Metadata;
 import kotlin.jvm.internal.Intrinsics;

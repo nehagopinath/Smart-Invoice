@@ -1,4 +1,4 @@
-package com.synechron.cordapp.plugins;
+package com.template.cordapp.plugins;
 
 import java.util.List;
 import kotlin.Metadata;

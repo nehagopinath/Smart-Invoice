@@ -1,4 +1,4 @@
-package com.synechron.cordapp.common.flows;
+package com.template.cordapp.common.flows;
 
 import kotlin.Metadata;
 import kotlin.jvm.internal.DefaultConstructorMarker;

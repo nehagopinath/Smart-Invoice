@@ -1,4 +1,4 @@
-package com.synechron.cordapp.common.flows;
+package com.template.cordapp.common.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
 import java.util.ArrayList;

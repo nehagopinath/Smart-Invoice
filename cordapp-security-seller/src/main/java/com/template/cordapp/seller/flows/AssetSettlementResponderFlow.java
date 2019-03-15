@@ -1,16 +1,16 @@
-package com.synechron.cordapp.seller.flows;
+package com.template.cordapp.seller.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.synechron.cordapp.common.exception.TooManyStatesFoundException;
-import com.synechron.cordapp.common.flows.SignTxFlow;
-import com.synechron.cordapp.common.flows.IdentitySyncFlow.Receive;
-import com.synechron.cordapp.contract.AssetContract;
-import com.synechron.cordapp.flows.AbstractAssetSettlementFlow;
-import com.synechron.cordapp.flows.FlowLogicCommonMethods;
-import com.synechron.cordapp.flows.FlowLogicCommonMethods.DefaultImpls;
-import com.synechron.cordapp.state.Asset;
-import com.synechron.cordapp.state.AssetTransfer;
-import com.synechron.cordapp.utils.UtilsKt;
+import com.template.cordapp.common.exception.TooManyStatesFoundException;
+import com.template.cordapp.common.flows.SignTxFlow;
+import com.template.cordapp.common.flows.IdentitySyncFlow.Receive;
+import com.template.cordapp.contract.AssetContract;
+import com.template.cordapp.flows.AbstractAssetSettlementFlow;
+import com.template.cordapp.flows.FlowLogicCommonMethods;
+import com.template.cordapp.flows.FlowLogicCommonMethods.DefaultImpls;
+import com.template.cordapp.state.Asset;
+import com.template.cordapp.state.AssetTransfer;
+import com.template.cordapp.utils.UtilsKt;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;

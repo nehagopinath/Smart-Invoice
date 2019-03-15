@@ -1,9 +1,9 @@
-package com.synechron.cordapp.buyer.flows;
+package com.template.cordapp.buyer.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.synechron.cordapp.common.exception.TooManyStatesFoundException;
-import com.synechron.cordapp.common.flows.SignTxFlow;
-import com.synechron.cordapp.common.flows.IdentitySyncFlow.Receive;
+import com.template.cordapp.common.exception.TooManyStatesFoundException;
+import com.template.cordapp.common.flows.SignTxFlow;
+import com.template.cordapp.common.flows.IdentitySyncFlow.Receive;
 import com.synechron.cordapp.flows.AbstractAssetSettlementFlow;
 import com.synechron.cordapp.state.AssetTransfer;
 import java.util.ArrayList;
