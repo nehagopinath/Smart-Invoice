@@ -1,3 +1,6 @@
-include 'cordapp'
+include 'cordapp-common'
 include 'cordapp-contracts-states'
+include 'cordapp-security-buyer'
+include 'cordapp-security-seller'
+include 'cordapp-clearing-house'
 include 'clients'
