@@ -12,7 +12,7 @@ import static net.corda.core.contracts.ContractsDSL.requireSingleCommand;
 
 public class AssetTransferContract implements Contract {
 
-   private static final String ASSET_CONTRACT_ID = "com.template.cordapp.contract.AssetTransferContract";
+   public static final String ASSET_CONTRACT_ID = "com.template.cordapp.contract.AssetTransferContract";
 
    public interface Commands extends CommandData {
       class CreateRequest implements Commands {
