@@ -19,6 +19,8 @@ import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
 
+import static com.template.cordapp.state.RequestStatus.PENDING_CONFIRMATION;
+
 // ******************
 // * Initiator flow *
 // ******************
@@ -79,11 +81,17 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
       Asset asset = (Asset)com.synechron.cordapp.utils.Utils.getAssetByCusip(this.getServiceHub(), this.cusip).getState().getData();
       //todo:Pending Confirmation will be resolved in asset transfer state
       AssetTransfer assetTransfer = new AssetTransfer(asset, anonymousMe, anonymousCashLender, null, PENDING_CONFIRMATION);
+
+
+
+
       PublicKey ourSigningKey = assetTransfer.getSecuritySeller().getOwningKey();
 
       final Command<AssetTransferContract.Commands.CreateRequest> command = new Command(
               new AssetTransferContract.Commands.CreateRequest(),
               ImmutableList.of(assetTransfer.getParticipants()));
+
+
 
       // We create a transaction builder and add the components.
       TransactionBuilder txBuilder = new TransactionBuilder(notary)

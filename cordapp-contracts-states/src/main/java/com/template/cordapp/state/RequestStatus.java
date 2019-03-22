@@ -4,7 +4,7 @@ import net.corda.core.serialization.CordaSerializable;
 
 
 @CordaSerializable
-enum RequestStatus {
+public enum RequestStatus {
     PENDING_CONFIRMATION("Pending Confirmation"), //Initial status
     PENDING("Pending"), // updated by buyer
     TRANSFERRED("Transferred"), // on valid asset data clearing house update this status
