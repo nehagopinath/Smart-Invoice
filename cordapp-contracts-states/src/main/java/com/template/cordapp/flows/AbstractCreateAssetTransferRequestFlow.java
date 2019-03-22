@@ -16,7 +16,7 @@ public abstract class AbstractCreateAssetTransferRequestFlow extends FlowLogic i
    @NotNull
    public Party firstNotary(@NotNull ServiceHub $receiver) {
       Intrinsics.checkParameterIsNotNull($receiver, "$receiver");
-      return DefaultImpls.firstNotary(this, $receiver);
+      return DefaultImpls.firstNotary( $receiver);
    }
 
    @NotNull
@@ -24,14 +24,14 @@ public abstract class AbstractCreateAssetTransferRequestFlow extends FlowLogic i
       Intrinsics.checkParameterIsNotNull($receiver, "$receiver");
       Intrinsics.checkParameterIsNotNull(linearId, "linearId");
       Intrinsics.checkParameterIsNotNull(clazz, "clazz");
-      return DefaultImpls.loadState(this, $receiver, linearId, clazz);
+      return DefaultImpls.loadState( $receiver, linearId, clazz);
    }
 
    @NotNull
    public Party resolveIdentity(@NotNull ServiceHub $receiver, @NotNull AbstractParty abstractParty) {
       Intrinsics.checkParameterIsNotNull($receiver, "$receiver");
       Intrinsics.checkParameterIsNotNull(abstractParty, "abstractParty");
-      return DefaultImpls.resolveIdentity(this, $receiver, abstractParty);
+      return DefaultImpls.resolveIdentity( $receiver, abstractParty);
    }
 }
 
