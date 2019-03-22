@@ -48,7 +48,7 @@ public class CreateAssetStateFlow extends FlowLogic<SignedTransaction>  {
       Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
       // We create the transaction components.
-      Asset asset = new Asset(cusip, assetName,purchaseCost,getOurIdentity();
+      Asset asset = new Asset(cusip, assetName,purchaseCost,getOurIdentity());
       Command command = new Command<>(new AssetContract.Commands.Create(), getOurIdentity().getOwningKey());
 
       // We create a transaction builder and add the components.
