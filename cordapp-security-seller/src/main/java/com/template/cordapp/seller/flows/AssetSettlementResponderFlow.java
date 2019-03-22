@@ -68,10 +68,12 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
          }
       }
 
-      //TODO throw too many states found exception if this fails
-
+      //throw too many states found exception if this fails
       AssetTransfer assetTransfer = (AssetTransfer) CollectionsKt.singleOrNull((List) destinationAT);
 
+      if (assetTransfer == null){
+         throw (new TooManyStatesFoundException("Transaction with more than one `AssetTransfer` " + "input states received from `" + this.otherSideSession.getCounterparty() + "` party"));
+      }
       // TODO cordapp-common/utils should be fixed to fix this code   **
       // StateAndRef assetStateAndRef = t
 

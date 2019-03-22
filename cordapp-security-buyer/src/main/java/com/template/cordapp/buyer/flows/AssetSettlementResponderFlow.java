@@ -64,9 +64,12 @@ public final class AssetSettlementResponderFlow extends FlowLogic {
          }
       }
 
-      //TODO throw too many states found exception if this fails
-
+      //throw too many states found exception if this fails
       AssetTransfer assetTransfer = (AssetTransfer) CollectionsKt.singleOrNull((List) destinationAT);
+
+      if (assetTransfer == null){
+          throw (new TooManyStatesFoundException("Transaction with more than one `AssetTransfer` " + "input states received from `" + this.otherSideSession.getCounterparty() + "` party"));
+      }
 
       //TODO Using initiating flow id to soft lock reserve the Cash state.
        //val initiatingFlowId = otherSideSession.receive<UUID>().unwrap { it }
