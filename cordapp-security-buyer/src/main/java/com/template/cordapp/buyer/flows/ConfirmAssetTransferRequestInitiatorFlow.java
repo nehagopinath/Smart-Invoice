@@ -123,10 +123,8 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
                  new CollectSignaturesFlow(signedTx, ImmutableSet.of(otherPartySession), CollectionsKt.listOf(output.getSecurityBuyer().getOwningKey()), CollectSignaturesFlow.Companion.tracker()));
 
          // Finalising the transaction.
-         subFlow(new FinalityFlow(fullySignedTx));
+         return (SignedTransaction) subFlow(new FinalityFlow(fullySignedTx));
 
-         //todo: should return fully signed transaction
-         return null;
 
       }
    }

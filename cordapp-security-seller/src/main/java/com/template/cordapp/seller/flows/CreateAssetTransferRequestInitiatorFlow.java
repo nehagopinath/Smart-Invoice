@@ -9,7 +9,10 @@ import com.template.cordapp.flows.AbstractCreateAssetTransferRequestFlow;
 import com.template.cordapp.state.Asset;
 import com.template.cordapp.state.AssetTransfer;
 import java.security.PublicKey;
+import java.time.Duration;
 import java.util.*;
+
+import kotlin.collections.CollectionsKt;
 import net.corda.confidential.SwapIdentitiesFlow;
 import net.corda.core.contracts.*;
 import net.corda.core.flows.*;
@@ -55,7 +58,7 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
       // We retrieve the notary identity from the network map.
       Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
-      if (getOurIdentity().getName() == securityBuyer.getName()) throw new InvalidPartyException("Flow initiating party should not equals to Lender of Cash party.");
+      if (getOurIdentity().getName() == securityBuyer.getName()) throw new InvalidPartyException("Flow initiating party should not equal to Lender of Cash party.");
 
       //initialising
       LinkedHashMap txKeys = (LinkedHashMap)subFlow(new SwapIdentitiesFlow(securityBuyer));
@@ -77,13 +80,9 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
       }
 
       // We create the transaction components.
-      //todo:will be resolved after solving Common->Utils
       Asset asset = (Asset)com.synechron.cordapp.utils.Utils.getAssetByCusip(this.getServiceHub(), this.cusip).getState().getData();
-      //todo:Pending Confirmation will be resolved in asset transfer state
-      AssetTransfer assetTransfer = new AssetTransfer(asset, anonymousMe, anonymousCashLender, null, PENDING_CONFIRMATION);
 
-
-
+      AssetTransfer assetTransfer = new AssetTransfer(asset, anonymousMe, anonymousCashLender, null, PENDING_CONFIRMATION,null,null);
 
       PublicKey ourSigningKey = assetTransfer.getSecuritySeller().getOwningKey();
 
@@ -92,29 +91,25 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
               ImmutableList.of(assetTransfer.getParticipants()));
 
 
-
       // We create a transaction builder and add the components.
       TransactionBuilder txBuilder = new TransactionBuilder(notary)
               .addOutputState(assetTransfer, AssetTransferContract.ASSET_CONTRACT_ID)
-              .addCommand(command);
-
-      //todo:add time window
+              .addCommand(command)
+              .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(30));
 
       // Signing the transaction.
-      SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
+      SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder,ourSigningKey);
 
       // Creating a session with the other party.
       FlowSession otherPartySession = initiateFlow(securityBuyer);
 
-      // Obtaining the counterparty's signature.
+      // Obtaining the counter-party's signature.
       final SignedTransaction fullySignedTx = (SignedTransaction) subFlow(
-              new CollectSignaturesFlow(signedTx, ImmutableSet.of(otherPartySession), CollectSignaturesFlow.Companion.tracker()));
+              new CollectSignaturesFlow(signedTx, ImmutableSet.of(otherPartySession), CollectionsKt.listOf(ourSigningKey),CollectSignaturesFlow.Companion.tracker()));
 
       // Finalising the transaction.
-    subFlow(new FinalityFlow(fullySignedTx));
+      return (SignedTransaction) subFlow(new FinalityFlow(fullySignedTx));
 
-    //todo: should return fully signed transaction
-    return null;
 
    }
 }
