@@ -16,10 +16,7 @@ import net.corda.core.transactions.LedgerTransaction;
 import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
-import net.corda.core.utilities.UntrustworthyData;
 import net.corda.finance.contracts.asset.Cash;
-
-import java.security.PublicKey;
 import java.security.SignatureException;
 import java.util.*;
 

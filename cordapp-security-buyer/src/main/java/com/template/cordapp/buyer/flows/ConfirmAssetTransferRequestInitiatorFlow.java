@@ -4,11 +4,14 @@ import co.paralleluniverse.fibers.Suspendable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.template.cordapp.common.exception.InvalidPartyException;
+import com.template.cordapp.common.flows.IdentitySyncFlow;
 import com.template.cordapp.contract.AssetTransferContract;
 import com.template.cordapp.flows.AbstractConfirmAssetTransferRequestFlow;
+import com.template.cordapp.state.Asset;
 import com.template.cordapp.state.AssetTransfer;
 import com.template.cordapp.state.RequestStatus;
 import java.security.PublicKey;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -82,13 +85,13 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
       Intrinsics.checkExpressionValueIsNotNull(anonymousCustodian, "anonymousCustodian");
       List participants = CollectionsKt.plus(participants1, anonymousCustodian);
 
+      Asset asset = (Asset) input.getState().getData();
       AssetTransfer assetTransfer = (AssetTransfer) input.getState().getData();
       AbstractParty abstractParty = (AbstractParty) anonymousCustodian;
       TransactionBuilder txb = null;
       RequestStatus requestStatus = PENDING;
 
-      //Todo : should be resolved
-      AssetTransfer output = new AssetTransfer(assetTransfer, null, anonymousMe, anonymousCustodian, PENDING, participants, linearId);
+      AssetTransfer output = new AssetTransfer(asset, null, anonymousMe, anonymousCustodian, PENDING, participants, linearId);
 
 
          if (getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), output.getSecurityBuyer()).getName()) {
@@ -106,9 +109,8 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
          TransactionBuilder txBuilder = new TransactionBuilder(notary)
                  .addInputState(input)
                  .addOutputState(output, AssetTransferContract.ASSET_CONTRACT_ID)
-                 .addCommand(command);
-
-         //todo:add time window
+                 .addCommand(command)
+                 .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(60));
 
          // Signing the transaction.
          SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder, output.getSecurityBuyer().getOwningKey());
@@ -118,7 +120,7 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
          // Creating a session with the other party.
          FlowSession otherPartySession = initiateFlow(clearingHouse);
 
-         // Obtaining the counterparty's signature.
+         // Obtaining the counter-party's signature.
          final SignedTransaction fullySignedTx = (SignedTransaction) subFlow(
                  new CollectSignaturesFlow(signedTx, ImmutableSet.of(otherPartySession), CollectionsKt.listOf(output.getSecurityBuyer().getOwningKey()), CollectSignaturesFlow.Companion.tracker()));
 

@@ -29,7 +29,7 @@ import static com.template.cordapp.state.RequestStatus.PENDING_CONFIRMATION;
 // ******************
 @InitiatingFlow
 @StartableByRPC
-public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAssetTransferRequestFlow {
+public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAssetTransferRequestFlow<SignedTransaction> {
 
    private final String cusip;
    private final Party securityBuyer;

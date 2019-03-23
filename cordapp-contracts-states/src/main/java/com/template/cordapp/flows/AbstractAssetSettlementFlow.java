@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 @InitiatingFlow
 
-public abstract class AbstractAssetSettlementFlow extends FlowLogic implements FlowLogicCommonMethods {
+public abstract class AbstractAssetSettlementFlow<SignedTransaction> extends FlowLogic<SignedTransaction> implements FlowLogicCommonMethods {
    @NotNull
    public Party firstNotary(@NotNull ServiceHub $receiver) {
       Intrinsics.checkParameterIsNotNull($receiver, "$receiver");

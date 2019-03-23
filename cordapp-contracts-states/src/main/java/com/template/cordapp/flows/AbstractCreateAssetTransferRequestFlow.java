@@ -12,7 +12,7 @@ import net.corda.core.node.ServiceHub;
 import org.jetbrains.annotations.NotNull;
 
 @InitiatingFlow
-public abstract class AbstractCreateAssetTransferRequestFlow<signTransaction> extends FlowLogic<signTransaction> implements FlowLogicCommonMethods {
+public abstract class AbstractCreateAssetTransferRequestFlow<SignedTransaction> extends FlowLogic<SignedTransaction> implements FlowLogicCommonMethods {
    @NotNull
    public Party firstNotary(@NotNull ServiceHub $receiver) {
       Intrinsics.checkParameterIsNotNull($receiver, "$receiver");
