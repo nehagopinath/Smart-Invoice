@@ -7,13 +7,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import kotlin.Metadata;
 import kotlin.Pair;
 import kotlin.Unit;
 import kotlin.collections.CollectionsKt;
 import kotlin.collections.MapsKt;
 import kotlin.collections.SetsKt;
-import kotlin.jvm.internal.DefaultConstructorMarker;
 import kotlin.jvm.internal.Intrinsics;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateRef;
@@ -28,13 +26,7 @@ import net.corda.core.utilities.UntrustworthyData;
 import net.corda.core.utilities.ProgressTracker.Step;
 import org.jetbrains.annotations.NotNull;
 
-@Metadata(
-   mv = {1, 1, 8},
-   bv = {1, 0, 2},
-   k = 1,
-   d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0004\bÆ\u0002\u0018\u00002\u00020\u0001:\u0002\u0003\u0004B\u0007\b\u0002¢\u0006\u0002\u0010\u0002¨\u0006\u0005"},
-   d2 = {"Lcom/synechron/cordapp/common/flows/IdentitySyncFlow;", "", "()V", "Receive", "Send", "cordapp-common"}
-)
+
 public final class IdentitySyncFlow {
    public static final IdentitySyncFlow INSTANCE;
 
@@ -46,13 +38,7 @@ public final class IdentitySyncFlow {
       new IdentitySyncFlow();
    }
 
-   @Metadata(
-      mv = {1, 1, 8},
-      bv = {1, 0, 2},
-      k = 1,
-      d1 = {"\u0000*\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\"\n\u0000\n\u0002\u0018\u0002\n\u0002\b\n\u0018\u0000 \u00142\b\u0012\u0004\u0012\u00020\u00020\u0001:\u0001\u0014B\u0017\b\u0016\u0012\u0006\u0010\u0003\u001a\u00020\u0004\u0012\u0006\u0010\u0005\u001a\u00020\u0006¢\u0006\u0002\u0010\u0007B#\u0012\f\u0010\b\u001a\b\u0012\u0004\u0012\u00020\u00040\t\u0012\u0006\u0010\u0005\u001a\u00020\u0006\u0012\u0006\u0010\n\u001a\u00020\u000b¢\u0006\u0002\u0010\fJ\b\u0010\u0013\u001a\u00020\u0002H\u0017R\u0017\u0010\b\u001a\b\u0012\u0004\u0012\u00020\u00040\t¢\u0006\b\n\u0000\u001a\u0004\b\r\u0010\u000eR\u0014\u0010\n\u001a\u00020\u000bX\u0096\u0004¢\u0006\b\n\u0000\u001a\u0004\b\u000f\u0010\u0010R\u0011\u0010\u0005\u001a\u00020\u0006¢\u0006\b\n\u0000\u001a\u0004\b\u0011\u0010\u0012¨\u0006\u0015"},
-      d2 = {"Lcom/synechron/cordapp/common/flows/IdentitySyncFlow$Send;", "Lnet/corda/core/flows/FlowLogic;", "", "otherSide", "Lnet/corda/core/flows/FlowSession;", "tx", "Lnet/corda/core/transactions/WireTransaction;", "(Lnet/corda/core/flows/FlowSession;Lnet/corda/core/transactions/WireTransaction;)V", "otherSideSessions", "", "progressTracker", "Lnet/corda/core/utilities/ProgressTracker;", "(Ljava/util/Set;Lnet/corda/core/transactions/WireTransaction;Lnet/corda/core/utilities/ProgressTracker;)V", "getOtherSideSessions", "()Ljava/util/Set;", "getProgressTracker", "()Lnet/corda/core/utilities/ProgressTracker;", "getTx", "()Lnet/corda/core/transactions/WireTransaction;", "call", "Companion", "cordapp-common"}
-   )
+
    public static final class Send extends FlowLogic {
       @NotNull
       private final Set otherSideSessions;
@@ -200,13 +186,6 @@ public final class IdentitySyncFlow {
 
       }
 
-      // $FF: synthetic method
-      // $FF: bridge method
-      public Object call() {
-         this.call();
-         return Unit.INSTANCE;
-      }
-
       @NotNull
       public final Set getOtherSideSessions() {
          return this.otherSideSessions;
@@ -238,13 +217,7 @@ public final class IdentitySyncFlow {
          this(SetsKt.setOf(otherSide), tx, Companion.tracker());
       }
 
-      @Metadata(
-         mv = {1, 1, 8},
-         bv = {1, 0, 2},
-         k = 1,
-         d1 = {"\u0000\u0014\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\b\u0086\u0003\u0018\u00002\u00020\u0001:\u0001\u0005B\u0007\b\u0002¢\u0006\u0002\u0010\u0002J\u0006\u0010\u0003\u001a\u00020\u0004¨\u0006\u0006"},
-         d2 = {"Lcom/synechron/cordapp/common/flows/IdentitySyncFlow$Send$Companion;", "", "()V", "tracker", "Lnet/corda/core/utilities/ProgressTracker;", "SYNCING_IDENTITIES", "cordapp-common"}
-      )
+
       public static final class Companion {
          @NotNull
          public final ProgressTracker tracker() {
@@ -255,17 +228,11 @@ public final class IdentitySyncFlow {
          }
 
          // $FF: synthetic method
-         public Companion(DefaultConstructorMarker $constructor_marker) {
+         public Companion() {
             this();
          }
 
-         @Metadata(
-            mv = {1, 1, 8},
-            bv = {1, 0, 2},
-            k = 1,
-            d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\bÆ\u0002\u0018\u00002\u00020\u0001B\u0007\b\u0002¢\u0006\u0002\u0010\u0002¨\u0006\u0003"},
-            d2 = {"Lcom/synechron/cordapp/common/flows/IdentitySyncFlow$Send$Companion$SYNCING_IDENTITIES;", "Lnet/corda/core/utilities/ProgressTracker$Step;", "()V", "cordapp-common"}
-         )
+
          public static final class SYNCING_IDENTITIES extends Step {
             public static final IdentitySyncFlow.Send.Companion.SYNCING_IDENTITIES INSTANCE;
 

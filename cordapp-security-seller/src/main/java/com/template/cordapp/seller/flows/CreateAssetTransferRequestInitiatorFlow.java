@@ -4,6 +4,7 @@ import co.paralleluniverse.fibers.Suspendable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.template.cordapp.common.exception.InvalidPartyException;
+import com.template.cordapp.utils.Utils;
 import com.template.cordapp.contract.AssetTransferContract;
 import com.template.cordapp.flows.AbstractCreateAssetTransferRequestFlow;
 import com.template.cordapp.state.Asset;
@@ -80,7 +81,7 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
       }
 
       // We create the transaction components.
-      Asset asset = (Asset)com.synechron.cordapp.utils.Utils.getAssetByCusip(this.getServiceHub(), this.cusip).getState().getData();
+      Asset asset = (Asset) Utils.getAssetByCusip(this.getServiceHub(), this.cusip).getState().getData();
 
       AssetTransfer assetTransfer = new AssetTransfer(asset, anonymousMe, anonymousCashLender, null, PENDING_CONFIRMATION,null,null);
 

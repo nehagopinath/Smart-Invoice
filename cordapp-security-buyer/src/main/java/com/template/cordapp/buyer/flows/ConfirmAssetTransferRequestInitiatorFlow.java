@@ -4,7 +4,6 @@ import co.paralleluniverse.fibers.Suspendable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.template.cordapp.common.exception.InvalidPartyException;
-import com.template.cordapp.common.flows.IdentitySyncFlow;
 import com.template.cordapp.contract.AssetTransferContract;
 import com.template.cordapp.flows.AbstractConfirmAssetTransferRequestFlow;
 import com.template.cordapp.state.Asset;
@@ -93,10 +92,11 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
 
       AssetTransfer output = new AssetTransfer(asset, null, anonymousMe, anonymousCustodian, PENDING, participants, linearId);
 
+      if (getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), output.getSecurityBuyer()).getName()) {
+         throw new InvalidPartyException("Flow must be initiated by Lender Of Cash.");
+      }
 
-         if (getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), output.getSecurityBuyer()).getName()) {
-            throw new InvalidPartyException("Flow must be initiated by Lender Of Cash.");
-         }
+
 
          PublicKey ourSigningKey = assetTransfer.getSecuritySeller().getOwningKey();
 

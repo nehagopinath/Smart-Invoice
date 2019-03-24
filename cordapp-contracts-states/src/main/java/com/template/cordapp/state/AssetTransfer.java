@@ -1,7 +1,6 @@
 package com.template.cordapp.state;
 
 import com.template.cordapp.schema.AssetTransferSchemaV1;
-import com.template.cordapp.schema.AssetTransferSchemaV1.PersistentAssetTransfer;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,8 +36,8 @@ public final class AssetTransfer implements LinearState, QueryableState {
     @NotNull
    public PersistentState generateMappedObject(@NotNull MappedSchema schema) {
       Intrinsics.checkParameterIsNotNull(schema, "schema");
-      if (schema instanceof AssetTransferSchemaV1) {
-         return (PersistentState)(new PersistentAssetTransfer(this.asset.getCusip(), this.securitySeller, this.securityBuyer, this.clearingHouse, this.status.getValue(), CollectionsKt.toMutableSet((Iterable)this.getParticipants()), this.getLinearId().toString()));
+      if (schema instanceof com.template.cordapp.schema.AssetTransferSchemaV1) {
+         return (PersistentState)(new AssetTransferSchemaV1.PersistentAssetTransfer(this.asset.getCusip(), this.securitySeller, this.securityBuyer, this.clearingHouse, this.status.getValue(), CollectionsKt.toMutableSet((Iterable)this.getParticipants()), this.getLinearId().toString()));
       } else {
          throw (new IllegalArgumentException("Unrecognised schema " + schema));
       }

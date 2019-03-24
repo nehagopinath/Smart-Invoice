@@ -16,7 +16,7 @@ import static net.corda.core.contracts.ContractsDSL.requireSingleCommand;
 
 public class AssetContract implements Contract {
 
-    public static final String ASSET_CONTRACT_ID = "com.template.cordapp.contract.AssetContract";
+    public static final String ASSET_CONTRACT_ID = "AssetContract";
 
     public interface Commands extends CommandData {
         class Create implements Commands {

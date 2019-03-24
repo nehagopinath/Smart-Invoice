@@ -1,6 +1,5 @@
 package com.template.cordapp.flows;
 
-import com.template.cordapp.flows.FlowLogicCommonMethods.DefaultImpls;
 import kotlin.jvm.internal.Intrinsics;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.contracts.UniqueIdentifier;

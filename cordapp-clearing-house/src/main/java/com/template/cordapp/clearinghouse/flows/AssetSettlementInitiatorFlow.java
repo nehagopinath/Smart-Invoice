@@ -17,10 +17,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import kotlin.Metadata;
 import kotlin.collections.CollectionsKt;
 import kotlin.collections.SetsKt;
-import kotlin.jvm.internal.DefaultConstructorMarker;
+//import kotlin.jvm.internal.DefaultConstructorMarker;
 import kotlin.jvm.internal.Intrinsics;
 import net.corda.confidential.IdentitySyncFlow.Receive;
 import net.corda.core.contracts.AttachmentConstraint;
@@ -31,12 +30,7 @@ import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.contracts.TransactionState;
 import net.corda.core.contracts.UniqueIdentifier;
-import net.corda.core.flows.CollectSignaturesFlow;
-import net.corda.core.flows.FinalityFlow;
-import net.corda.core.flows.FlowLogic;
-import net.corda.core.flows.FlowSession;
-import net.corda.core.flows.SendTransactionFlow;
-import net.corda.core.flows.StartableByRPC;
+import net.corda.core.flows.*;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.CordaX500Name;
 import net.corda.core.node.ServiceHub;
@@ -48,35 +42,40 @@ import net.corda.core.utilities.KotlinUtilsKt;
 import net.corda.core.utilities.ProgressTracker;
 import net.corda.core.utilities.ProgressTracker.Step;
 import org.jetbrains.annotations.NotNull;
+import static com.template.cordapp.state.RequestStatus.TRANSFERRED;
+
 
 @StartableByRPC
-@Metadata(
-   mv = {1, 1, 8},
-   bv = {1, 0, 2},
-   k = 1,
-   d1 = {"\u0000\u001e\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\b\u0005\b\u0007\u0018\u0000 \r2\b\u0012\u0004\u0012\u00020\u00020\u0001:\u0001\rB\r\u0012\u0006\u0010\u0003\u001a\u00020\u0004¢\u0006\u0002\u0010\u0005J\b\u0010\f\u001a\u00020\u0002H\u0017R\u0011\u0010\u0003\u001a\u00020\u0004¢\u0006\b\n\u0000\u001a\u0004\b\u0006\u0010\u0007R\u0014\u0010\b\u001a\u00020\tX\u0096\u0004¢\u0006\b\n\u0000\u001a\u0004\b\n\u0010\u000b¨\u0006\u000e"},
-   d2 = {"Lcom/synechron/cordapp/clearinghouse/flows/AssetSettlementInitiatorFlow;", "Lcom/synechron/cordapp/flows/AbstractAssetSettlementFlow;", "Lnet/corda/core/transactions/SignedTransaction;", "linearId", "Lnet/corda/core/contracts/UniqueIdentifier;", "(Lnet/corda/core/contracts/UniqueIdentifier;)V", "getLinearId", "()Lnet/corda/core/contracts/UniqueIdentifier;", "progressTracker", "Lnet/corda/core/utilities/ProgressTracker;", "getProgressTracker", "()Lnet/corda/core/utilities/ProgressTracker;", "call", "Companion", "cordapp-clearing-house"}
-)
-public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementFlow {
-   @NotNull
-   private final ProgressTracker progressTracker;
-   @NotNull
-   private final UniqueIdentifier linearId;
-   public static final AssetSettlementInitiatorFlow.Companion Companion = new AssetSettlementInitiatorFlow.Companion((DefaultConstructorMarker)null);
 
-   @NotNull
+public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementFlow <SignedTransaction> {
+
+   private final ProgressTracker progressTracker=new ProgressTracker();
+   private final UniqueIdentifier linearId;
+   //public static final AssetSettlementInitiatorFlow.Companion Companion = new AssetSettlementInitiatorFlow.Companion();
+
+   @Override
    public ProgressTracker getProgressTracker() {
       return this.progressTracker;
    }
 
    @Suspendable
    @NotNull
-   public SignedTransaction call() {
-      this.getProgressTracker().setCurrentStep((Step)AssetSettlementInitiatorFlow.Companion.INITIALISING.INSTANCE);
+   public SignedTransaction call() throws FlowException {
+      //this.getProgressTracker().setCurrentStep((AssetSettlementInitiatorFlow.Companion.INITIALISING.INSTANCE);
+      //initialization
       StateAndRef inAssetTransfer = this.loadState(this.getServiceHub(), this.linearId, AssetTransfer.class);
-      List participants = ((AssetTransfer)inAssetTransfer.getState().getData()).getParticipants();
-      AssetTransfer outAssetTransfer = AssetTransfer.copy$default((AssetTransfer)inAssetTransfer.getState().getData(), (Asset)null, (AbstractParty)null, (AbstractParty)null, (AbstractParty)null, RequestStatus.TRANSFERRED, (List)null, (UniqueIdentifier)null, 111, (Object)null);
-      CordaX500Name var10000 = this.getOurIdentity().getName();
+      List participants = (inAssetTransfer.getState().getData()).getParticipants();
+
+      Asset asset = (Asset) inAssetTransfer.getState().getData();
+      AssetTransfer assetTransfer = (AssetTransfer) inAssetTransfer.getState().getData();
+
+      AssetTransfer outAssetTransfer = new AssetTransfer(asset,null,null,null, TRANSFERRED, participants, linearId);
+
+      if (getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), outAssetTransfer.getClearingHouse()).getName()) {
+         throw new InvalidPartyException("Flow must be initiated by Custodian.");
+      }
+
+     /* CordaX500Name var10000 = this.getOurIdentity().getName();
       ServiceHub var10002 = this.getServiceHub();
       AbstractParty var10003 = outAssetTransfer.getClearingHouse();
       if (var10003 == null) {
@@ -84,10 +83,10 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
       }
 
       if (Intrinsics.areEqual(var10000, this.resolveIdentity(var10002, var10003).getName()) ^ true) {
-         throw (Throwable)(new InvalidPartyException("Flow must be initiated by Custodian."));
+         throw (new InvalidPartyException("Flow must be initiated by Custodian."));
       } else {
-         this.getProgressTracker().setCurrentStep((Step)AssetSettlementInitiatorFlow.Companion.BUILDING.INSTANCE);
-         TransactionBuilder var39 = TransactionBuilder.addOutputState$default((new TransactionBuilder(inAssetTransfer.getState().getNotary())).addInputState(inAssetTransfer), (ContractState)outAssetTransfer, AssetTransferContract.Companion.getASSET_TRANSFER_CONTRACT_ID(), (AttachmentConstraint)null, 4, (Object)null);
+         this.getProgressTracker().setCurrentStep(AssetSettlementInitiatorFlow.Companion.BUILDING.INSTANCE);
+         TransactionBuilder var39 = TransactionBuilder.addOutputState((new TransactionBuilder(inAssetTransfer.getState().getNotary())).addInputState(inAssetTransfer), (ContractState)outAssetTransfer, AssetTransferContract.Companion.getASSET_TRANSFER_CONTRACT_ID(), (AttachmentConstraint)null, 4, (Object)null);
          CommandData var10001 = (CommandData)(new SettleRequest());
          Iterable $receiver$iv = (Iterable)participants;
          CommandData var19 = var10001;
@@ -100,7 +99,7 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
             AbstractParty it = (AbstractParty)item$iv$iv;
             PublicKey var21 = it.getOwningKey();
             destination$iv$iv.add(var21);
-         }
+         }*/
 
          List var20 = (List)destination$iv$iv;
          TransactionBuilder txb = var18.addCommand(var19, var20);

@@ -4,10 +4,7 @@ import co.paralleluniverse.fibers.Suspendable;
 import com.template.cordapp.common.exception.TooManyStatesFoundException;
 import com.template.cordapp.common.flows.IdentitySyncFlow;
 import com.template.cordapp.common.flows.SignTxFlow;
-import com.template.cordapp.contract.AssetContract;
-import com.template.cordapp.flows.AbstractAssetSettlementFlow;
 import com.template.cordapp.flows.FlowLogicCommonMethods;
-import com.template.cordapp.state.Asset;
 import com.template.cordapp.state.AssetTransfer;
 
 import kotlin.collections.CollectionsKt;

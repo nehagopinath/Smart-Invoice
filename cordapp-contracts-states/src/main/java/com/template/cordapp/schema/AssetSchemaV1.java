@@ -1,6 +1,5 @@
 package com.template.cordapp.schema;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -11,13 +10,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
 import com.google.common.collect.ImmutableList;
-import kotlin.collections.CollectionsKt;
-import kotlin.jvm.internal.Intrinsics;
-import net.corda.core.crypto.NullKeys;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.schemas.MappedSchema;
 import net.corda.core.schemas.PersistentState;
-import net.corda.core.schemas.PersistentStateRef;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

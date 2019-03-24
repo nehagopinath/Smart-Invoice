@@ -1,21 +1,16 @@
 package com.template.cordapp.state;
 
 import com.template.cordapp.contract.AssetContract;
-import com.template.cordapp.contract.AssetContract.Commands.Transfer;
+import com.template.cordapp.schema.AssetSchema;
 
 import java.util.List;
-import java.util.Objects;
 
-import com.template.cordapp.contract.AssetContract.Commands;
-import com.template.cordapp.schema.AssetSchema;
 import com.template.cordapp.schema.AssetSchemaV1;
 import kotlin.collections.CollectionsKt;
 import kotlin.collections.SetsKt;
-import kotlin.jvm.internal.Intrinsics;
 import net.corda.core.contracts.*;
 import net.corda.core.crypto.NullKeys;
 import net.corda.core.identity.AbstractParty;
-import net.corda.core.identity.Party;
 import net.corda.core.schemas.MappedSchema;
 import net.corda.core.schemas.PersistentState;
 import net.corda.core.schemas.QueryableState;
@@ -59,7 +54,7 @@ public final class Asset implements OwnableState, QueryableState {
    @Override
    public CommandAndState withNewOwner(@NotNull AbstractParty newOwner) {
       return new CommandAndState(
-              (CommandData) new Transfer(),
+              (CommandData) new AssetContract.Commands.Transfer(),
               (OwnableState)copy$default(this, (String)null, (String)null, (Amount)null, newOwner, 7, (Object)null)
       );
    }
