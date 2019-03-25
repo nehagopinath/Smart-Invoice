@@ -117,11 +117,19 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
        securityBuyerSession.send(txBuilder.getLockId());
 
        //Receive and register the anonymous identity were created for Cash transfer.
-       this.subFlow(((new Receive(securityBuyerSession)));
+       this.subFlow(((new Receive(securityBuyerSession))));
        //Receive transaction with input and output state of Cash state.
        SignedTransaction cashPtx = (SignedTransaction) this.subFlow((new ReceiveTransactionUnVerifiedFlow(securityBuyerSession)));
        //Add Asset states and commands to origin Transaction Builder `txb`.
-       LedgerTransaction assetLtx = assetPtx.toLedgerTransaction(this.getServiceHub(), false);
+
+        LedgerTransaction assetLtx=null;
+        try {
+            assetLtx = assetPtx.toLedgerTransaction(this.getServiceHub(), false);
+        }
+        catch (SignatureException e)
+        {
+            e.printStackTrace();
+        }
 
 
 
@@ -151,8 +159,17 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
            txBuilder.addCommand(new Command(it.getValue(), it.getSigners()));
        }
 
+        LedgerTransaction cashLtx = null;
 
-       LedgerTransaction cashLtx = cashPtx.toLedgerTransaction(this.getServiceHub(), false);
+        try {
+            cashLtx = cashPtx.toLedgerTransaction(this.getServiceHub(), false);
+        }
+        catch (SignatureException e)
+        {
+            e.printStackTrace();
+        }
+
+
 
        Iterable cashInputs = cashLtx.getInputs();
        Iterable cashOutputs = cashLtx.getInputs();
@@ -181,8 +198,8 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
 
 
          //identity sync
-         Set counterPartySessions = SetsKt.setOf(new FlowSession[]{securityBuyerSession, securitySellerSession});
-         this.subFlow((FlowLogic)(new Send(counterPartySessions, txBuilder.toWireTransaction((ServicesForResolution)this.getServiceHub()), AssetSettlementInitiatorFlow.Companion.IDENTITY_SYNC.INSTANCE.childProgressTracker())));
+         //Set counterPartySessions = SetsKt.setOf(new FlowSession[]{securityBuyerSession, securitySellerSession});
+         //this.subFlow((FlowLogic)(new Send(counterPartySessions, txBuilder.toWireTransaction((ServicesForResolution)this.getServiceHub()), AssetSettlementInitiatorFlow.Companion.IDENTITY_SYNC.INSTANCE.childProgressTracker())));
 
 
        // Signature
@@ -191,7 +208,7 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
        //Todo: Get counter-party flow session
 
        // Creating a session with the other party.
-       FlowSession otherPartySession = initiateFlow(clearingHouse);
+       FlowSession otherPartySession = initiateFlow(notary); //really need to check this, 99% not right
 
        // Obtaining the counter-party's signature.
        final SignedTransaction fullySignedTx = (SignedTransaction) subFlow(
