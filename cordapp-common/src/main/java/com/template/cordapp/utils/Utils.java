@@ -18,6 +18,7 @@ import net.corda.core.node.services.vault.QueryCriteria;
 import net.corda.core.node.services.vault.Sort;
 import net.corda.core.node.services.vault.CriteriaExpression.ColumnPredicateExpression;
 import net.corda.core.node.services.vault.QueryCriteria.VaultCustomQueryCriteria;
+//ToDo: Find way to import from other places than Common
 
 
 
@@ -25,10 +26,14 @@ public final class Utils {
 
    public static final StateAndRef getAssetByCusip (ServiceHub receiver, String cusip) throws FlowException{
 
-      ColumnPredicateExpression cusipExpr = Builder.INSTANCE.equals(cusip);
+      ColumnPredicateExpression cusipExpr = null; //wrong, want to bind solution
       VaultCustomQueryCriteria cusipCriteria = new VaultCustomQueryCriteria(cusipExpr, null, null);
       VaultService receiveriv = receiver.getVaultService();
-      StateAndRef ser = CollectionsKt.singleOrNull(receiveriv._queryBy((QueryCriteria)cusipCriteria, new PageSpecification(), new Sort((SetsKt.emptySet()), Asset.class).getStates()));
+      StateAndRef ser = null;
+
+      //ToDo: Find a way to convert Kotlin SingleOrNull method to Java. Untl then ser has wrong value
+      //CollectionsKt.singleOrNull(receiveriv._queryBy((QueryCriteria)cusipCriteria, new PageSpecification(), new Sort((SetsKt.emptySet()),null).getStates()));
+
       if (ser != null) {
          return ser;
       } else {
