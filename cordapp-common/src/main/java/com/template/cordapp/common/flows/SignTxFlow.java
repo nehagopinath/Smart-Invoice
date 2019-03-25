@@ -13,14 +13,20 @@ import net.corda.core.utilities.ProgressTracker;
 
 import java.security.SignatureException;
 
-
+//ToDo: Think about removing Kotlin code
 public final class SignTxFlow extends SignTransactionFlow {
    protected void checkTransaction(SignedTransaction stx) throws FlowException  {
       boolean expr= CollectionsKt.any(stx.getSigs());
       if (!expr) {
          throw (new IllegalArgumentException("Failed requirement: Must be signed by the initiator"));
       } else {
-         stx.verify(this.getServiceHub(),false);
+         try {
+            stx.verify(this.getServiceHub(), false);
+         }
+         catch (SignatureException e)
+         {
+            e.printStackTrace();
+         }
       }
 
 
