@@ -31,8 +31,8 @@ public final class Utils {
       VaultService receiveriv = receiver.getVaultService();
       StateAndRef ser = null;
 
-      //ToDo: Find a way to convert Kotlin SingleOrNull method to Java. Untl then ser has wrong value
-      //CollectionsKt.singleOrNull(receiveriv._queryBy((QueryCriteria)cusipCriteria, new PageSpecification(), new Sort((SetsKt.emptySet()),null).getStates()));
+
+     //CollectionsKt.singleOrNull(receiveriv._queryBy((QueryCriteria)cusipCriteria, new PageSpecification(), new Sort((SetsKt.emptySet()),null).getStates()));
 
       if (ser != null) {
          return ser;

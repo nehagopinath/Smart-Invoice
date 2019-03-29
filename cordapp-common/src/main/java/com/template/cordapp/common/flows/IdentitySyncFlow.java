@@ -24,14 +24,13 @@ import net.corda.core.transactions.WireTransaction;
 import net.corda.core.utilities.ProgressTracker;
 import net.corda.core.utilities.UntrustworthyData;
 import net.corda.core.utilities.ProgressTracker.Step;
-import org.jetbrains.annotations.NotNull;
 
 
 public final class IdentitySyncFlow {
    public static final IdentitySyncFlow INSTANCE;
 
    private IdentitySyncFlow() {
-      INSTANCE = (IdentitySyncFlow)this;
+      INSTANCE = this;
    }
 
    static {
@@ -40,12 +39,14 @@ public final class IdentitySyncFlow {
 
 
    public static final class Send extends FlowLogic {
-      @NotNull
+
       private final Set otherSideSessions;
-      @NotNull
+
       private final WireTransaction tx;
-      @NotNull
+
       private final ProgressTracker progressTracker;
+
+
       public static final IdentitySyncFlow.Send.Companion Companion = new IdentitySyncFlow.Send.Companion((DefaultConstructorMarker)null);
 
       @Suspendable
