@@ -48,26 +48,26 @@ public final class IdentitySyncFlowSend extends FlowLogic {
 
     @Suspendable
     public SignedTransaction call() throws FlowException {
-        //this.getProgressTracker().setCurrentStep((Step)IdentitySyncFlow.Send.Companion.SYNCING_IDENTITIES.INSTANCE);
-        Iterable $receiver$iv = (Iterable)this.tx.getInputs();
-        Collection destination$iv$iv = (Collection)(new ArrayList(CollectionsKt.collectionSizeOrDefault($receiver$iv, 10)));
+
+        Iterable $receiver$iv = this.tx.getInputs();
+        Collection destination = new ArrayList(CollectionsKt.collectionSizeOrDefault($receiver$iv, 10));
         Iterator var5 = $receiver$iv.iterator();
 
-        Object item$iv$iv;
+        Object item;
         while(var5.hasNext()) {
-            item$iv$iv = var5.next();
-            StateRef it = (StateRef)item$iv$iv;
-            TransactionState var26 = this.getServiceHub().loadState(it);
-            destination$iv$iv.add(var26);
+            item = var5.next();
+            StateRef it = (StateRef)item;
+            TransactionState ts = this.getServiceHub().loadState(it);
+            destination.add(ts);
         }
 
-        $receiver$iv = (Iterable)CollectionsKt.requireNoNulls((List)destination$iv$iv);
-        destination$iv$iv = (Collection)(new ArrayList(CollectionsKt.collectionSizeOrDefault($receiver$iv, 10)));
+        $receiver$iv = (Iterable)CollectionsKt.requireNoNulls((List)destination);
+        //destination$iv$iv = (Collection)(new ArrayList(CollectionsKt.collectionSizeOrDefault($receiver$iv, 10)));
         var5 = $receiver$iv.iterator();
 
         TransactionState it;
         while(var5.hasNext()) {
-            item$iv$iv = var5.next();
+            item = var5.next();
             it = (TransactionState)item$iv$iv;
             ContractState var54 = it.getData();
             destination$iv$iv.add(var54);
@@ -172,7 +172,7 @@ public final class IdentitySyncFlowSend extends FlowLogic {
                 AbstractParty it = (AbstractParty)item$iv$iv;
                 PartyAndCertificate identityCertificate = (PartyAndCertificate)identityCertificates.get(it);
                 if (identityCertificate == null) {
-                    throw (Throwable)(new IllegalStateException("Counterparty requested a confidential identity for which we do not have the certificate path: " + this.tx.getId()));
+                    throw new IllegalStateException("Counterparty requested a confidential identity for which we do not have the certificate path: " + this.tx.getId());
                 }
 
                 destination$iv$iv.add(identityCertificate);
