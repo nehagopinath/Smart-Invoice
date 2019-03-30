@@ -1,6 +1,11 @@
 package com.template.cordapp.common.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.SignatureException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -29,10 +34,10 @@ import net.corda.core.utilities.ProgressTracker.Step;
 
 public final class IdentitySyncFlowReceive extends FlowLogic {
 
-    private final Set otherSideSession;
+    private final FlowSession otherSideSession;
     private final ProgressTracker progressTracker = new ProgressTracker();
 
-    public IdentitySyncFlowReceive(Set otherSideSessions) {
+    public IdentitySyncFlowReceive(FlowSession otherSideSessions) {
         this.otherSideSession = otherSideSessions;
 
     }
@@ -44,44 +49,52 @@ public final class IdentitySyncFlowReceive extends FlowLogic {
 
     @Suspendable
     public SignedTransaction call() throws FlowException {
-        this.getProgressTracker().setCurrentStep((Step) IdentitySyncFlow.Receive.Companion.RECEIVING_IDENTITIES.INSTANCE);
-        Set this_$iv = this.otherSideSession;
-        UntrustworthyData $receiver$iv = this_$iv.receive(List.class);
-        List it = (List) $receiver$iv.getFromUntrustedWorld();
-        Iterable $receiver$iv = (Iterable) it;
-        Collection destination$iv$iv = (Collection) (new ArrayList());
-        Iterator var6 = $receiver$iv.iterator();
 
-        while (var6.hasNext()) {
-            Object element$iv$iv = var6.next();
-            AbstractParty it = (AbstractParty) element$iv$iv;
-            if (this.getServiceHub().getIdentityService().wellKnownPartyFromAnonymous(it) == null) {
-                destination$iv$iv.add(element$iv$iv);
+        FlowSession thisSession = this.otherSideSession;
+        UntrustworthyData $receiver$iv = thisSession.receive(List.class);
+        List it = (List) $receiver$iv.getFromUntrustedWorld();
+        //Iterable $receiver$iv = (Iterable) it;
+        Collection destination = new ArrayList();
+        Iterator itIterator = it.iterator();
+
+        while (itIterator.hasNext()) {
+            Object element = itIterator.next();
+            AbstractParty itAbParty = (AbstractParty) element;
+            if (this.getServiceHub().getIdentityService().wellKnownPartyFromAnonymous(itAbParty) == null) {
+                destination.add(element);
             }
         }
 
-        List unknownIdentities = (List) destination$iv$iv;
-        this.getProgressTracker().setCurrentStep((Step) IdentitySyncFlow.Receive.Companion.RECEIVING_CERTIFICATES.INSTANCE);
-        FlowSession this_$iv = this.otherSideSession;
-        UntrustworthyData missingIdentities = this_$iv.sendAndReceive(List.class, unknownIdentities);
+        List unknownIdentities = (List) destination;
+        //FlowSession this_$iv = this.otherSideSession;
+        UntrustworthyData missingIdentities = thisSession.sendAndReceive(List.class, unknownIdentities);
         List identities = (List) missingIdentities.getFromUntrustedWorld();
-        Iterable $receiver$iv = (Iterable) identities;
-        Iterator var23 = $receiver$iv.iterator();
+        //Iterable $receiver$iv = (Iterable) identities;
+        Iterator identIterator = identities.iterator();
 
-        while (var23.hasNext()) {
-            Object element$iv = var23.next();
-            PartyAndCertificate it = (PartyAndCertificate) element$iv;
-            it.verify(this.getServiceHub().getIdentityService().getTrustAnchor());
+        while (identIterator.hasNext()) {
+            Object element$iv = identIterator.next();
+            PartyAndCertificate itPartCert = (PartyAndCertificate) element$iv;
+            itPartCert.verify(this.getServiceHub().getIdentityService().getTrustAnchor());
+            try {
+                this.getServiceHub().getIdentityService().verifyAndRegisterIdentity(itPartCert);
+            }
+            catch (CertificateExpiredException | CertificateNotYetValidException | InvalidAlgorithmParameterException e)
+            {
+                e.printStackTrace();
+            }
         }
 
-        Iterable $receiver$iv = (Iterable) identities;
-        Iterator var20 = $receiver$iv.iterator();
+        /*Iterable $receiver$iv = (Iterable) identities;
+        Iterator var20 = $receiver$iv.iterator();**/
 
-        while (var20.hasNext()) {
-            Object element$iv = var20.next();
+        /*while (identIterator.hasNext()) {
+            Object element$iv = identIterator.next();
             PartyAndCertificate identity = (PartyAndCertificate) element$iv;
-            this.getServiceHub().getIdentityService().verifyAndRegisterIdentity(identity);
-        }
+        }*/
+
+        //ToDo See what to return
+        return null;
 
     }
 
