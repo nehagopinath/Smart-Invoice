@@ -13,7 +13,6 @@ https://github.com/corda/corda-tut2-solution-java
 Existing tutorial sample implementations from corda :
 
 https://github.com/corda/samples <br>
-https://github.com/synechron-finlabs/Three-parties-DvP-Atomic-TX-CorDapp
 
 <h2>Development
 
