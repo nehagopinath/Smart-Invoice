@@ -12,7 +12,6 @@ import com.template.cordapp.state.AssetTransfer;
 import java.security.PublicKey;
 import java.time.Duration;
 import java.util.*;
-
 import kotlin.collections.CollectionsKt;
 import net.corda.confidential.SwapIdentitiesFlow;
 import net.corda.core.contracts.*;
@@ -109,7 +108,7 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
               new CollectSignaturesFlow(signedTx, ImmutableSet.of(otherPartySession), CollectionsKt.listOf(ourSigningKey),CollectSignaturesFlow.Companion.tracker()));
 
       // Finalising the transaction.
-      return (SignedTransaction) subFlow(new FinalityFlow(fullySignedTx));
+      return subFlow(new FinalityFlow(fullySignedTx));
 
 
    }

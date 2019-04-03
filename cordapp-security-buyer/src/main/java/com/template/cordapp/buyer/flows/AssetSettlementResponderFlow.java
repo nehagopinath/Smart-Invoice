@@ -1,6 +1,7 @@
 package com.template.cordapp.buyer.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
+import com.template.cordapp.clearinghouse.flows.AssetSettlementInitiatorFlow;
 import com.template.cordapp.common.exception.TooManyStatesFoundException;
 import com.template.cordapp.common.flows.IdentitySyncFlow;
 import com.template.cordapp.common.flows.SignTxFlow;
@@ -15,13 +16,15 @@ import net.corda.core.transactions.LedgerTransaction;
 import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
+import net.corda.core.utilities.UntrustworthyData;
 import net.corda.finance.contracts.asset.Cash;
 import java.security.SignatureException;
 import java.util.*;
 
-//TODO : Fix this
-//@InitiatedBy(AbstractAssetSettlementFlow.class)
-public final class AssetSettlementResponderFlow extends FlowLogic {
+
+@InitiatedBy(AssetSettlementInitiatorFlow.class)
+
+public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransaction> {
 
    private final ProgressTracker progressTracker;
    private final FlowSession otherSideSession;
@@ -68,11 +71,11 @@ public final class AssetSettlementResponderFlow extends FlowLogic {
       }
 
       //TODO Using initiating flow id to soft lock reserve the Cash state.
-       //val initiatingFlowId = otherSideSession.receive<UUID>().unwrap { it }
-/*
+       FlowSession initiatingFlowId = otherSideSession.receive<UUID>().unwrap { it }
+
        FlowSession flowSession = this.otherSideSession;
        UntrustworthyData<UUID> recieveiv = flowSession.receive(UUID.class);
-       UUID it = (UUID)recieveiv.getFromUntrustedWorld(); */
+       UUID it = (UUID)recieveiv.getFromUntrustedWorld();
 
        //Issue cash to security owner i.e. `Seller` party.
 

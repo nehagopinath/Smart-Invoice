@@ -8,7 +8,6 @@ import javax.persistence.Entity;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
-
 import com.google.common.collect.ImmutableList;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.schemas.MappedSchema;
@@ -30,11 +29,11 @@ public final class AssetSchemaV1 extends MappedSchema {
    )
 
    public static class PersistentAsset extends PersistentState {
-       // TODO check according to the example schema the following should be "private final"
-      @Column(name = "cusip") private String cusip;
-      @Column(name = "asset_name") private  String assetName;
-      @Column(name = "purchase_cost") private  String purchaseCost;
-      @Column(name = "owner") private AbstractParty owner;
+
+      @Column(name = "cusip") private final String cusip;
+      @Column(name = "asset_name") private final String assetName;
+      @Column(name = "purchase_cost") private final String purchaseCost;
+      @Column(name = "owner") private final AbstractParty owner;
 
 
       @ElementCollection
@@ -72,13 +71,11 @@ public final class AssetSchemaV1 extends MappedSchema {
           return this.participants;
       }
 
-      //TODO check : setter is not required here i guess
-      /*
-      public final void setParticipants(@Nullable Set <set-?>) {
-         this.participants = var1;
-      }*/
+      public final void setParticipants(Set participants) {
+         this.participants = participants;
+      }
 
-      public PersistentAsset(@NotNull String cusip, @NotNull String assetName, @NotNull String purchaseCost, @NotNull AbstractParty owner, @Nullable Set participants) {
+      public PersistentAsset(String cusip,String assetName,String purchaseCost,AbstractParty owner,Set participants) {
          this.cusip = cusip;
          this.assetName = assetName;
          this.purchaseCost = purchaseCost;

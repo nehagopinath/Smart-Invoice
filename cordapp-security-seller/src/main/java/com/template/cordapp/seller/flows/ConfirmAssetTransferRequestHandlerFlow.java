@@ -6,12 +6,12 @@ import com.template.cordapp.common.flows.IdentitySyncFlow.Receive;
 import net.corda.core.flows.FlowException;
 import net.corda.core.flows.FlowLogic;
 import net.corda.core.flows.FlowSession;
+import net.corda.core.flows.InitiatedBy;
 import net.corda.core.transactions.SignedTransaction;
+import com.template.cordapp.buyer.flows.ConfirmAssetTransferRequestInitiatorFlow;
 
 
-
-//todo: check how to use @initiatedby with Abstract class
-//@InitiatedBy(AbstractConfirmAssetTransferRequestFlow.class)
+@InitiatedBy(ConfirmAssetTransferRequestInitiatorFlow.class)
 
 public class ConfirmAssetTransferRequestHandlerFlow extends FlowLogic<SignedTransaction> {
    private final FlowSession otherSideSession;

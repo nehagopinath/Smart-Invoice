@@ -11,7 +11,6 @@ import net.corda.core.identity.AbstractParty;
 import net.corda.core.transactions.LedgerTransaction;
 import net.corda.finance.contracts.asset.Cash;
 import net.corda.finance.utils.StateSumming;
-
 import static net.corda.core.contracts.ContractsDSL.requireSingleCommand;
 
 public class AssetContract implements Contract {
@@ -64,7 +63,7 @@ public class AssetContract implements Contract {
             throw new IllegalArgumentException("No inputs should be consumed.");
         if (!(tx.getOutputs().size() == 1))
             throw new IllegalArgumentException("There should be one output state created.");
-        if (!(output.getPurchaseCost().getQuantity() < 0))
+        if (output.getPurchaseCost().getQuantity() < 0)
             throw new IllegalArgumentException("The purchase cost value must be non-negative.");
         if (!(signers.contains(output.getOwner().getOwningKey())))
             throw new IllegalArgumentException("Owner only may sign the Asset issue transaction.");

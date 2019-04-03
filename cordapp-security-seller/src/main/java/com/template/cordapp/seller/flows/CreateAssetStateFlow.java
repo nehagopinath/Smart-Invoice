@@ -10,60 +10,61 @@ import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
 
+import java.time.Duration;
+
 
 // ******************
 // * Initiator flow *
 // ******************
 @InitiatingFlow
 @StartableByRPC
-public class CreateAssetStateFlow extends FlowLogic<SignedTransaction>  {
-   /**
-    * The progress tracker provides checkpoints indicating the progress of the flow to observers.
-    */
-   private final ProgressTracker progressTracker = new ProgressTracker();
-   private final String cusip;
-   private final String assetName;
-   private final Amount purchaseCost;
+public class CreateAssetStateFlow extends FlowLogic<SignedTransaction> {
+    /**
+     * The progress tracker provides checkpoints indicating the progress of the flow to observers.
+     */
+    private final ProgressTracker progressTracker = new ProgressTracker();
+    private final String cusip;
+    private final String assetName;
+    private final Amount purchaseCost;
 
 
+    public CreateAssetStateFlow(String cusip, String assetName, Amount purchaseCost) {
+        this.cusip = cusip;
+        this.assetName = assetName;
+        this.purchaseCost = purchaseCost;
+    }
 
-   public CreateAssetStateFlow(String cusip, String assetName,Amount purchaseCost) {
-      this.cusip = cusip;
-      this.assetName = assetName;
-      this.purchaseCost= purchaseCost;
-   }
+    @Override
+    public ProgressTracker getProgressTracker() {
+        return progressTracker;
+    }
 
-   @Override
-   public ProgressTracker getProgressTracker() {
-      return progressTracker;
-   }
+    /**
+     * The flow logic is encapsulated within the call() method.
+     */
+    @Suspendable
+    @Override
+    public SignedTransaction call() throws FlowException {
+        // We retrieve the notary identity from the network map.
+        Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
-   /**
-    * The flow logic is encapsulated within the call() method.
-    */
-   @Suspendable
-   @Override
-   public SignedTransaction call() throws FlowException {
-      // We retrieve the notary identity from the network map.
-      Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
+        // We create the transaction components.
+        Asset asset = new Asset(cusip, assetName, purchaseCost, getOurIdentity());
+        Command command = new Command<>(new AssetContract.Commands.Create(), getOurIdentity().getOwningKey());
 
-      // We create the transaction components.
-      Asset asset = new Asset(cusip, assetName,purchaseCost,getOurIdentity());
-      Command command = new Command<>(new AssetContract.Commands.Create(), getOurIdentity().getOwningKey());
+        // We create a transaction builder and add the components.
+        TransactionBuilder txBuilder = new TransactionBuilder(notary)
+                .addOutputState(asset, AssetContract.ASSET_CONTRACT_ID)
+                .addCommand(command)
+                .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(30));
 
-      // We create a transaction builder and add the components.
-      TransactionBuilder txBuilder = new TransactionBuilder(notary)
-              .addOutputState(asset, AssetContract.ASSET_CONTRACT_ID)
-              .addCommand(command);
-      //todo: set timewindow for the transaction
+        // Signing the transaction.
+        SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
 
-      // Signing the transaction.
-      SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
+        // Finalising the transaction.
+        return subFlow(new FinalityFlow(signedTx));
 
-      // Finalising the transaction.
-      return subFlow(new FinalityFlow(signedTx));
-
-   }
+    }
 }
 
 

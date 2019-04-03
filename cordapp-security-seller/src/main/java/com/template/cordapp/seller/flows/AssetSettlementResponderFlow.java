@@ -1,6 +1,7 @@
 package com.template.cordapp.seller.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
+import com.template.cordapp.clearinghouse.flows.AssetSettlementInitiatorFlow;
 import com.template.cordapp.common.exception.TooManyStatesFoundException;
 import com.template.cordapp.common.flows.IdentitySyncFlow;
 import com.template.cordapp.common.flows.SignTxFlow;
@@ -26,7 +27,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-//@InitiatedBy(AbstractAssetSettlementFlow.class)
+@InitiatedBy(AssetSettlementInitiatorFlow.class)
 
 public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransaction> implements FlowLogicCommonMethods {
    private final ProgressTracker progressTracker;
