@@ -2,7 +2,8 @@ package com.template.cordapp.seller.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
 import com.template.cordapp.common.flows.SignTxFlow;
-import com.template.cordapp.common.flows.IdentitySyncFlow.Receive;
+import com.template.cordapp.common.flows.IdentitySyncFlowReceive;
+import net.corda.confidential.IdentitySyncFlow;
 import net.corda.core.flows.FlowException;
 import net.corda.core.flows.FlowLogic;
 import net.corda.core.flows.FlowSession;
@@ -22,7 +23,7 @@ public class ConfirmAssetTransferRequestHandlerFlow extends FlowLogic<SignedTran
    }
    @Suspendable
    public SignedTransaction call() throws FlowException {
-      this.subFlow((new Receive(this.otherSideSession)));
+      this.subFlow((new IdentitySyncFlow.Receive(this.otherSideSession)));
 
       SignedTransaction stx = (SignedTransaction)this.subFlow((FlowLogic)(new SignTxFlow(this.otherSideSession)));
 

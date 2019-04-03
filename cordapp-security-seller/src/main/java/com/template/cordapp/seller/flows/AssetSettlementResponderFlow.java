@@ -4,6 +4,7 @@ import co.paralleluniverse.fibers.Suspendable;
 import com.template.cordapp.clearinghouse.flows.AssetSettlementInitiatorFlow;
 import com.template.cordapp.common.exception.TooManyStatesFoundException;
 import com.template.cordapp.common.flows.IdentitySyncFlow;
+import com.template.cordapp.common.flows.IdentitySyncFlowReceive;
 import com.template.cordapp.common.flows.SignTxFlow;
 import com.template.cordapp.flows.FlowLogicCommonMethods;
 import com.template.cordapp.state.AssetTransfer;
@@ -85,7 +86,7 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
 
       SignedTransaction ptx2 = this.getServiceHub().signInitialTransaction(txb);
       this.subFlow((FlowLogic) (new SendTransactionFlow(this.otherSideSession, ptx2)));
-      this.subFlow((FlowLogic) (new IdentitySyncFlow.Receive(this.otherSideSession)));
+      this.subFlow((FlowLogic) (new IdentitySyncFlowReceive(this.otherSideSession)));
       SignedTransaction stx = (SignedTransaction) this.subFlow((FlowLogic) (new SignTxFlow(this.otherSideSession)));
 
       return waitForLedgerCommit(stx.getId());

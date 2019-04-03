@@ -3,13 +3,12 @@ package com.template.cordapp.buyer.flows;
 import co.paralleluniverse.fibers.Suspendable;
 import com.template.cordapp.clearinghouse.flows.AssetSettlementInitiatorFlow;
 import com.template.cordapp.common.exception.TooManyStatesFoundException;
-import com.template.cordapp.common.flows.IdentitySyncFlow;
+import com.template.cordapp.common.flows.IdentitySyncFlowReceive;
+import com.template.cordapp.common.flows.IdentitySyncFlowSend;
 import com.template.cordapp.common.flows.SignTxFlow;
 import com.template.cordapp.state.AssetTransfer;
 import kotlin.Pair;
 import kotlin.collections.CollectionsKt;
-import net.corda.core.contracts.PrivacySalt;
-import net.corda.core.contracts.TimeWindow;
 import net.corda.core.flows.*;
 import net.corda.core.node.StatesToRecord;
 import net.corda.core.transactions.LedgerTransaction;
@@ -71,7 +70,6 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
       }
 
       //TODO Using initiating flow id to soft lock reserve the Cash state.
-       FlowSession initiatingFlowId = otherSideSession.receive<UUID>().unwrap { it }
 
        FlowSession flowSession = this.otherSideSession;
        UntrustworthyData<UUID> recieveiv = flowSession.receive(UUID.class);
@@ -79,20 +77,21 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
 
        //Issue cash to security owner i.e. `Seller` party.
 
-       Pair AB = Cash.generateSpend(this.getServiceHub(),
-               new TransactionBuilder(ltx1.getNotary(), initiatingFlowId, (List)null, (List)null, (List)null, (List)null, (TimeWindow)null, (PrivacySalt)null),
+       Pair AB = (Pair) Cash.generateSpend(this.getServiceHub(),
+               new TransactionBuilder(ltx1.getNotary(),it,null,null,null,null,null,null), //soft reserve the cash state.
                assetTransfer.getAsset().getPurchaseCost(),
                this.getOurIdentityAndCert(),
-               assetTransfer.getSecuritySeller());
+               assetTransfer.getSecuritySeller(),
+               null);
 
        TransactionBuilder txbWithCash = (TransactionBuilder) AB.component1();
        List cashSignKeys = (List)AB.component2();
 
        SignedTransaction ptx2 = this.getServiceHub().signInitialTransaction(txbWithCash);
 
-       subFlow((FlowLogic)(new IdentitySyncFlow.Send(this.otherSideSession, ptx2.getTx())));
+       subFlow((FlowLogic)(new IdentitySyncFlowSend(Collections.singleton(this), ptx2.getTx())));
        subFlow((FlowLogic)(new SendTransactionFlow(this.otherSideSession, ptx2)));
-       subFlow((FlowLogic)(new IdentitySyncFlow.Receive(this.otherSideSession)));
+       subFlow((FlowLogic)(new IdentitySyncFlowReceive(this.otherSideSession)));
 
        SignedTransaction stx = (SignedTransaction) subFlow(new SignTxFlow(this.otherSideSession));
 

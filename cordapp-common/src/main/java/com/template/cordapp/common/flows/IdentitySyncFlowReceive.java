@@ -3,34 +3,21 @@ package com.template.cordapp.common.flows;
 import co.paralleluniverse.fibers.Suspendable;
 
 import java.security.InvalidAlgorithmParameterException;
-import java.security.SignatureException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import kotlin.Pair;
-import kotlin.Unit;
-import kotlin.collections.CollectionsKt;
-import kotlin.collections.MapsKt;
-import kotlin.collections.SetsKt;
-import kotlin.jvm.internal.Intrinsics;
-import net.corda.core.contracts.ContractState;
-import net.corda.core.contracts.StateRef;
-import net.corda.core.contracts.TransactionState;
 import net.corda.core.flows.FlowException;
 import net.corda.core.flows.FlowLogic;
 import net.corda.core.flows.FlowSession;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.PartyAndCertificate;
 import net.corda.core.transactions.SignedTransaction;
-import net.corda.core.transactions.WireTransaction;
 import net.corda.core.utilities.ProgressTracker;
 import net.corda.core.utilities.UntrustworthyData;
-import net.corda.core.utilities.ProgressTracker.Step;
+import org.jetbrains.annotations.Nullable;
 
 public final class IdentitySyncFlowReceive extends FlowLogic {
 
@@ -47,6 +34,7 @@ public final class IdentitySyncFlowReceive extends FlowLogic {
         return this.progressTracker;
     }
 
+    @Nullable
     @Suspendable
     public SignedTransaction call() throws FlowException {
 
