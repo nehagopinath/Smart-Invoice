@@ -2,13 +2,13 @@ package com.template.cordapp.buyer.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
 import com.template.cordapp.common.flows.SignTxFlow;
-import com.template.cordapp.seller.flows.CreateAssetTransferRequestInitiatorFlow;
+import com.template.cordapp.flows.AbstractCreateAssetTransferRequestFlow;
 import net.corda.core.flows.*;
 import net.corda.core.transactions.SignedTransaction;
 
-@InitiatedBy(CreateAssetTransferRequestInitiatorFlow.class)
+@InitiatedBy(AbstractCreateAssetTransferRequestFlow.class)
 
-public class CreateAssetTransferRequestResponderFlow extends FlowLogic<SignedTransaction> {
+class CreateAssetTransferRequestResponderFlow extends FlowLogic<SignedTransaction> {
 
    private final FlowSession otherPartySession;
 

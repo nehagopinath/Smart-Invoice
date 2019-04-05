@@ -8,10 +8,11 @@ import net.corda.core.flows.InitiatingFlow;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
 import net.corda.core.node.ServiceHub;
+import net.corda.core.transactions.SignedTransaction;
 import org.jetbrains.annotations.NotNull;
 
 @InitiatingFlow
-public abstract class AbstractConfirmAssetTransferRequestFlow<SignedTransaction> extends FlowLogic<SignedTransaction> implements FlowLogicCommonMethods {
+public abstract class AbstractConfirmAssetTransferRequestFlow extends FlowLogic<SignedTransaction> implements FlowLogicCommonMethods {
     @NotNull
     public Party firstNotary(@NotNull ServiceHub $receiver) {
         Intrinsics.checkParameterIsNotNull($receiver, "$receiver");

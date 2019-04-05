@@ -1,11 +1,11 @@
 package com.template.cordapp.buyer.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.template.cordapp.clearinghouse.flows.AssetSettlementInitiatorFlow;
 import com.template.cordapp.common.exception.TooManyStatesFoundException;
 import com.template.cordapp.common.flows.IdentitySyncFlowReceive;
 import com.template.cordapp.common.flows.IdentitySyncFlowSend;
 import com.template.cordapp.common.flows.SignTxFlow;
+import com.template.cordapp.flows.AbstractAssetSettlementFlow;
 import com.template.cordapp.state.AssetTransfer;
 import kotlin.Pair;
 import kotlin.collections.CollectionsKt;
@@ -25,7 +25,7 @@ import java.util.*;
  * Buyer review the received settlement transaction then issue the cash to `Seller` party.
  */
 
-@InitiatedBy(AssetSettlementInitiatorFlow.class)
+@InitiatedBy(AbstractAssetSettlementFlow.class)
 
 public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransaction> {
 

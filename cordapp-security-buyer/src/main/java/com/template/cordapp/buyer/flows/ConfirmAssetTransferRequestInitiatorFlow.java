@@ -4,8 +4,6 @@ import co.paralleluniverse.fibers.Suspendable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.template.cordapp.common.exception.InvalidPartyException;
-import com.template.cordapp.common.flows.IdentitySyncFlow;
-import com.template.cordapp.common.flows.IdentitySyncFlowSend;
 import com.template.cordapp.contract.AssetTransferContract;
 import com.template.cordapp.flows.AbstractConfirmAssetTransferRequestFlow;
 import com.template.cordapp.state.Asset;
@@ -29,7 +27,6 @@ import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
 
 import static com.template.cordapp.state.RequestStatus.PENDING;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * The security buyer uses this flow to review and confirm received transaction from seller of security.
@@ -39,7 +36,7 @@ import static java.util.stream.Collectors.toSet;
 
 @StartableByRPC
 
-public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAssetTransferRequestFlow<SignedTransaction>{
+public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAssetTransferRequestFlow{
 
     private final UniqueIdentifier linearId;
     private final Party clearingHouse;

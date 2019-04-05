@@ -7,6 +7,7 @@ import com.template.cordapp.common.flows.IdentitySyncFlowReceive;
 import com.template.cordapp.common.flows.SignTxFlow;
 import com.template.cordapp.contract.AssetContract;
 import com.template.cordapp.contract.AssetTransferContract;
+import com.template.cordapp.flows.AbstractAssetSettlementFlow;
 import com.template.cordapp.flows.FlowLogicCommonMethods;
 import com.template.cordapp.state.Asset;
 import com.template.cordapp.state.AssetTransfer;
@@ -41,7 +42,7 @@ import java.util.List;
  */
 
 //todo 5: resolve the circular Dependency
-@InitiatedBy(AssetSettlementInitiatorFlow.class)
+@InitiatedBy(AbstractAssetSettlementFlow.class)
 
 public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransaction> implements FlowLogicCommonMethods {
 

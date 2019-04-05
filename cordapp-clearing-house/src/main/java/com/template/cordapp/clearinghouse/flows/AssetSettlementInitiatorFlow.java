@@ -47,7 +47,7 @@ import static com.template.cordapp.state.RequestStatus.TRANSFERRED;
 @StartableByRPC
 
 
-public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementFlow<SignedTransaction> {
+public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementFlow {
 
     private final ProgressTracker progressTracker = new ProgressTracker();
     private final UniqueIdentifier linearId;
