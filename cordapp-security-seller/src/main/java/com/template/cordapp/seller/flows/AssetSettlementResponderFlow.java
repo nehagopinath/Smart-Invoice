@@ -3,42 +3,54 @@ package com.template.cordapp.seller.flows;
 import co.paralleluniverse.fibers.Suspendable;
 import com.template.cordapp.clearinghouse.flows.AssetSettlementInitiatorFlow;
 import com.template.cordapp.common.exception.TooManyStatesFoundException;
-import com.template.cordapp.common.flows.IdentitySyncFlow;
 import com.template.cordapp.common.flows.IdentitySyncFlowReceive;
 import com.template.cordapp.common.flows.SignTxFlow;
+import com.template.cordapp.contract.AssetContract;
+import com.template.cordapp.contract.AssetTransferContract;
 import com.template.cordapp.flows.FlowLogicCommonMethods;
+import com.template.cordapp.state.Asset;
 import com.template.cordapp.state.AssetTransfer;
 
+import com.template.cordapp.utils.Utils;
 import kotlin.collections.CollectionsKt;
+import net.corda.confidential.IdentitySyncFlow;
 import net.corda.core.contracts.*;
 import net.corda.core.flows.*;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
 import net.corda.core.node.ServiceHub;
 import net.corda.core.node.StatesToRecord;
+import net.corda.core.schemas.QueryableState;
 import net.corda.core.transactions.LedgerTransaction;
 import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Signed;
 import java.security.SignatureException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Seller review the received settlement transaction then create and send new temporary transaction
+ * to send input, output [Asset] states and command to change ownership to `Buyer` party.
+ */
+
+//todo 5: resolve the circular Dependency
 @InitiatedBy(AssetSettlementInitiatorFlow.class)
 
 public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransaction> implements FlowLogicCommonMethods {
-   private final ProgressTracker progressTracker;
+
+   private final ProgressTracker progressTracker = new ProgressTracker();
    private final FlowSession otherSideSession;
 
-   public AssetSettlementResponderFlow(ProgressTracker progressTracker, FlowSession otherSideSession) {
-      this.progressTracker = progressTracker;
+   public AssetSettlementResponderFlow(FlowSession otherSideSession) {
       this.otherSideSession = otherSideSession;
    }
-
 
    public ProgressTracker getProgressTracker() {
       return this.progressTracker;
@@ -46,9 +58,20 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
 
    @Suspendable
    public SignedTransaction call() throws FlowException {
+
+      Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
+
+
+      SignedTransaction ptx = subFlow(new ReceiveTransactionFlow(otherSideSession, false, StatesToRecord.NONE));
+
+      try {
+         LedgerTransaction ltx1 = ptx.toLedgerTransaction(getServiceHub(), false);
+      } catch (SignatureException e) {
+         e.printStackTrace();
+      }
+
       SignedTransaction ptx1 = (SignedTransaction) this.subFlow((FlowLogic) (new ReceiveTransactionFlow(this.otherSideSession, false, StatesToRecord.NONE)));
 
-      //TODO check : not sure if this works
       LedgerTransaction ltx1 = null;
       try {
          ltx1 = ptx1.toLedgerTransaction(this.getServiceHub(), false);
@@ -56,9 +79,9 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
          e.printStackTrace();
       }
 
-      Iterable inputstates = (Iterable) ltx1.getInputStates();
-      Collection destinationAT = (Collection) (new ArrayList());
-      Iterator instIterator = inputstates.iterator();
+      Iterable inputState= ltx1.getInputStates();
+      Collection destinationAT = (new ArrayList());
+      Iterator instIterator = inputState.iterator();
 
       while (instIterator.hasNext()) {
          Object o = instIterator.next();
@@ -70,24 +93,29 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
       //throw too many states found exception if this fails
       AssetTransfer assetTransfer = (AssetTransfer) CollectionsKt.singleOrNull((List) destinationAT);
 
-      if (assetTransfer == null){
+      //todo 6: Check this exception
+      if (assetTransfer != null){
          throw (new TooManyStatesFoundException("Transaction with more than one `AssetTransfer` " + "input states received from `" + this.otherSideSession.getCounterparty() + "` party"));
       }
-      // TODO cordapp-common/utils should be fixed to fix this code   **
-      // StateAndRef assetStateAndRef = t
 
-      TransactionBuilder txb = new TransactionBuilder(ltx1.getNotary());
-      /*
-      **
-      txb.addInputState(assetStateAndRef)
-        txb.addOutputState(assetOutState, AssetContract.ASSET_CONTRACT_ID)
-        txb.addCommand(Command(cmd, assetOutState.owner.owningKey))
-       */
+      StateAndRef assetStateAndRef = (StateAndRef) Utils.getAssetByCusip(getServiceHub(),assetTransfer.getAsset().getCusip());
 
-      SignedTransaction ptx2 = this.getServiceHub().signInitialTransaction(txb);
-      this.subFlow((FlowLogic) (new SendTransactionFlow(this.otherSideSession, ptx2)));
-      this.subFlow((FlowLogic) (new IdentitySyncFlowReceive(this.otherSideSession)));
-      SignedTransaction stx = (SignedTransaction) this.subFlow((FlowLogic) (new SignTxFlow(this.otherSideSession)));
+      //todo 7: Check this below line for the function withNewOwner()
+
+      //CommandAndState(cmd, assetOutState)commandAndState = (CommandAndState)assetStateAndRef.getState().getData().withNewOwner(assetTransfer.getSecurityBuyer());
+
+      TransactionBuilder txBuilder = new TransactionBuilder(notary)
+              .addInputState(assetStateAndRef);
+              //.addOutputState(assetOutState, AssetContract.ASSET_CONTRACT_ID)
+             // .addCommand(cmd, assetOutState.getOwner.getOwningKey);
+
+      SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
+
+      this.subFlow((new SendTransactionFlow(otherSideSession, signedTx)));
+
+      subFlow(new IdentitySyncFlow.Receive(otherSideSession));
+
+      SignedTransaction stx = subFlow(new SignTxFlow(otherSideSession));
 
       return waitForLedgerCommit(stx.getId());
    }

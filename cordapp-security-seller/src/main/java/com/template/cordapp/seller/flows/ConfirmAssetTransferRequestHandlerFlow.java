@@ -11,7 +11,7 @@ import net.corda.core.flows.InitiatedBy;
 import net.corda.core.transactions.SignedTransaction;
 import com.template.cordapp.buyer.flows.ConfirmAssetTransferRequestInitiatorFlow;
 
-
+//todo 3: resolve the circular dependency
 @InitiatedBy(ConfirmAssetTransferRequestInitiatorFlow.class)
 
 public class ConfirmAssetTransferRequestHandlerFlow extends FlowLogic<SignedTransaction> {

@@ -18,6 +18,11 @@ import net.corda.core.node.services.vault.QueryCriteria;
 import net.corda.core.node.services.vault.QueryCriteria.LinearStateQueryCriteria;
 import org.jetbrains.annotations.NotNull;
 
+/***
+ * Interface offers default functions implementation for get first notary from NetworkMap,
+ * find State on vault by linearId, and resolve anonymous or abstract party to well known identity.
+ */
+
 public interface FlowLogicCommonMethods {
    Party firstNotary(@NotNull ServiceHub $receiver);
    StateAndRef loadState(@NotNull ServiceHub $receiver, @NotNull UniqueIdentifier linearId, @NotNull Class clazz);

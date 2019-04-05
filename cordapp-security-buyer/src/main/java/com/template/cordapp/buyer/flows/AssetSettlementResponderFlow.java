@@ -21,15 +21,19 @@ import java.security.SignatureException;
 import java.util.*;
 
 
+/**
+ * Buyer review the received settlement transaction then issue the cash to `Seller` party.
+ */
+
 @InitiatedBy(AssetSettlementInitiatorFlow.class)
 
 public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransaction> {
 
-   private final ProgressTracker progressTracker;
+    private final ProgressTracker progressTracker = new ProgressTracker();
    private final FlowSession otherSideSession;
 
-   public AssetSettlementResponderFlow(ProgressTracker progressTracker, FlowSession otherSideSession) {
-      this.progressTracker = progressTracker;
+   public AssetSettlementResponderFlow(FlowSession otherSideSession) {
+
       this.otherSideSession = otherSideSession;
    }
 
@@ -40,36 +44,41 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
    @Suspendable
    @Override
    public SignedTransaction call() throws FlowException {
-      SignedTransaction ptx1 = (SignedTransaction)this.subFlow((FlowLogic)(new ReceiveTransactionFlow(this.otherSideSession, false, StatesToRecord.NONE)));
 
-      //TODO check : not sure if this works
-      LedgerTransaction ltx1 = null;
-      try {
-         ltx1 = ptx1.toLedgerTransaction(this.getServiceHub(), false);
-      } catch (SignatureException e) {
-         e.printStackTrace();
-      }
+       SignedTransaction ptx = subFlow(new ReceiveTransactionFlow(otherSideSession, false, StatesToRecord.NONE));
 
+       try {
+           LedgerTransaction ltx1 = ptx.toLedgerTransaction(getServiceHub(), false);
+       } catch (SignatureException e) {
+           e.printStackTrace();
+       }
 
-      Iterable inputstates = (Iterable)ltx1.getInputStates();
-      Collection destinationAT = (Collection)(new ArrayList());
-      Iterator instIterator = inputstates.iterator();
+       SignedTransaction ptx1 = (SignedTransaction) this.subFlow((FlowLogic) (new ReceiveTransactionFlow(this.otherSideSession, false, StatesToRecord.NONE)));
 
-      while(instIterator.hasNext()) {
-         Object o = instIterator.next();
-         if (o instanceof AssetTransfer) {
-            destinationAT.add(o);
-         }
-      }
+       LedgerTransaction ltx1 = null;
+       try {
+           ltx1 = ptx1.toLedgerTransaction(this.getServiceHub(), false);
+       } catch (SignatureException e) {
+           e.printStackTrace();
+       }
 
-      //throw too many states found exception if this fails
-      AssetTransfer assetTransfer = (AssetTransfer) CollectionsKt.singleOrNull((List) destinationAT);
+       Iterable inputState= ltx1.getInputStates();
+       Collection destinationAT = (new ArrayList());
+       Iterator instIterator = inputState.iterator();
 
-      if (assetTransfer == null){
-          throw (new TooManyStatesFoundException("Transaction with more than one `AssetTransfer` " + "input states received from `" + this.otherSideSession.getCounterparty() + "` party"));
-      }
+       while (instIterator.hasNext()) {
+           Object o = instIterator.next();
+           if (o instanceof AssetTransfer) {
+               destinationAT.add(o);
+           }
+       }
 
-      //TODO Using initiating flow id to soft lock reserve the Cash state.
+       //throw too many states found exception if this fails
+       AssetTransfer assetTransfer = (AssetTransfer) CollectionsKt.singleOrNull((List) destinationAT);
+
+       if (assetTransfer != null){
+           throw (new TooManyStatesFoundException("Transaction with more than one `AssetTransfer` " + "input states received from `" + this.otherSideSession.getCounterparty() + "` party"));
+       }
 
        FlowSession flowSession = this.otherSideSession;
        UntrustworthyData<UUID> recieveiv = flowSession.receive(UUID.class);
@@ -89,26 +98,19 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
 
        SignedTransaction ptx2 = this.getServiceHub().signInitialTransaction(txbWithCash);
 
-       subFlow((FlowLogic)(new IdentitySyncFlowSend(Collections.singleton(this), ptx2.getTx())));
+       //todo 8: check the below line
+
+       subFlow(new IdentitySyncFlowSend(Collections.singleton(this), ptx2.getTx()));
        subFlow((FlowLogic)(new SendTransactionFlow(this.otherSideSession, ptx2)));
        subFlow((FlowLogic)(new IdentitySyncFlowReceive(this.otherSideSession)));
 
-       SignedTransaction stx = (SignedTransaction) subFlow(new SignTxFlow(this.otherSideSession));
+       SignedTransaction stx = subFlow(new SignTxFlow(this.otherSideSession));
 
        return waitForLedgerCommit(stx.getId());
 
 
    }
 
-   public final FlowSession getOtherSideSession() {
-      return this.otherSideSession;
-   }
-
-   public AssetSettlementResponderFlow( FlowSession otherSideSession) {
-      super();
-      this.otherSideSession = otherSideSession;
-      this.progressTracker = new ProgressTracker();
-   }
 
 }
 

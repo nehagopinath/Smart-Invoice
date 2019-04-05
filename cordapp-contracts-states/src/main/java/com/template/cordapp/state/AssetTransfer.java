@@ -16,28 +16,40 @@ import net.corda.core.schemas.PersistentState;
 import net.corda.core.schemas.QueryableState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
+/**
+ * This state acting as deal data before the actual [Asset] being transfer to target buyer party on settlement.
+ */
 
 
 public final class AssetTransfer implements LinearState, QueryableState {
-    // TODO check: the following attributes did not work with final keyword
-   private  Asset asset;
-   private  AbstractParty securitySeller;
-   private  AbstractParty securityBuyer;
-   private  AbstractParty clearingHouse;
-   // TODO check the usage of the enum RequestStatus to get the value
-   private  RequestStatus status;
+
+   private final Asset asset;
+   private AbstractParty securitySeller;
+   private AbstractParty securityBuyer;
+   private AbstractParty clearingHouse;
+   private final RequestStatus status;
+
+   public AssetTransfer(@NotNull Asset asset, @NotNull AbstractParty securitySeller, @NotNull AbstractParty securityBuyer, @Nullable AbstractParty clearingHouse, @NotNull RequestStatus status, @NotNull List participants, @NotNull UniqueIdentifier linearId) {
+      super();
+      this.asset = asset;
+      this.securitySeller = securitySeller;
+      this.securityBuyer = securityBuyer;
+      this.clearingHouse = clearingHouse;
+      this.status = status;
+      this.participants = getParticipants();
+      this.linearId = linearId;
+   }
+
    private List<AbstractParty> participants =  Arrays.asList(securityBuyer, securitySeller);
    private UniqueIdentifier linearId = new UniqueIdentifier();
 
-   //TODO check : this was required (autofix by IDE) for the supportedSchema thingy
     private AssetTransfer AssetTransferSchemaV1;
 
     @NotNull
    public PersistentState generateMappedObject(@NotNull MappedSchema schema) {
       Intrinsics.checkParameterIsNotNull(schema, "schema");
       if (schema instanceof com.template.cordapp.schema.AssetTransferSchemaV1) {
-         return (PersistentState)(new AssetTransferSchemaV1.PersistentAssetTransfer(this.asset.getCusip(), this.securitySeller, this.securityBuyer, this.clearingHouse, this.status.getValue(), CollectionsKt.toMutableSet((Iterable)this.getParticipants()), this.getLinearId().toString()));
+         return (new AssetTransferSchemaV1.PersistentAssetTransfer(this.asset.getCusip(), this.securitySeller, this.securityBuyer, this.clearingHouse, this.status.getValue(), CollectionsKt.toMutableSet((Iterable)this.getParticipants()), this.getLinearId().toString()));
       } else {
          throw (new IllegalArgumentException("Unrecognised schema " + schema));
       }
@@ -81,17 +93,6 @@ public final class AssetTransfer implements LinearState, QueryableState {
    @NotNull
    public UniqueIdentifier getLinearId() {
       return this.linearId;
-   }
-
-   public AssetTransfer(@NotNull Asset asset, @NotNull AbstractParty securitySeller, @NotNull AbstractParty securityBuyer, @Nullable AbstractParty clearingHouse, @NotNull RequestStatus status, @NotNull List participants, @NotNull UniqueIdentifier linearId) {
-      super();
-      this.asset = asset;
-      this.securitySeller = securitySeller;
-      this.securityBuyer = securityBuyer;
-      this.clearingHouse = clearingHouse;
-      this.status = status;
-      this.participants = getParticipants();
-      this.linearId = linearId;
    }
 
    @NotNull

@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.template.cordapp.common.exception.InvalidPartyException;
 import com.template.cordapp.common.flows.IdentitySyncFlow;
+import com.template.cordapp.common.flows.IdentitySyncFlowSend;
 import com.template.cordapp.contract.AssetTransferContract;
 import com.template.cordapp.flows.AbstractConfirmAssetTransferRequestFlow;
 import com.template.cordapp.state.Asset;
@@ -30,6 +31,11 @@ import net.corda.core.utilities.ProgressTracker;
 import static com.template.cordapp.state.RequestStatus.PENDING;
 import static java.util.stream.Collectors.toSet;
 
+/**
+ * The security buyer uses this flow to review and confirm received transaction from seller of security.
+ * If everything is okay then `Buyer` party initiate this flow to send received transaction to `Clearing House` for further
+ * verification and settlement.
+ */
 
 @StartableByRPC
 
@@ -62,7 +68,7 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
         Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
         //Swap Identity
-        LinkedHashMap txKeys = (LinkedHashMap) subFlow(new SwapIdentitiesFlow(clearingHouse));
+        LinkedHashMap txKeys = subFlow(new SwapIdentitiesFlow(clearingHouse));
         boolean size = txKeys.size() == 2;
         if (!size) {
             String illegalState = "Something went wrong when generating confidential identities.";
@@ -116,19 +122,19 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
 
         FlowSession otherPartySession = initiateFlow(clearingHouse);
 
-        //TODO: to be resolved after resolving identity sync flow
-        /*progressTracker.getCurrentStep()=;
-        subFlow(IdentitySyncFlow.Send(
+        //TODO 1: to be resolved after resolving identity sync flow
+
+        /*
+        subFlow(new IdentitySyncFlow.send(
                 otherPartySession,
                 txb.toWireTransaction(getServiceHub(),IdentitySyncFlow.Companion.tracker())));*/
 
-
         // Obtaining the counter-party's signature.
-        final SignedTransaction fullySignedTx = (SignedTransaction) subFlow(
+        final SignedTransaction fullySignedTx = subFlow(
                 new CollectSignaturesFlow(signedTx, ImmutableSet.of(otherPartySession), CollectionsKt.listOf(ourSigningKey), CollectSignaturesFlow.Companion.tracker()));
 
         // Finalising the transaction.
-        return (SignedTransaction) subFlow(new FinalityFlow(fullySignedTx));
+        return subFlow(new FinalityFlow(fullySignedTx));
 
 
     }

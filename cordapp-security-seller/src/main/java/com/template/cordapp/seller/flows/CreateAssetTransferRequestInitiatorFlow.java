@@ -24,6 +24,10 @@ import net.corda.core.utilities.ProgressTracker;
 
 import static com.template.cordapp.state.RequestStatus.PENDING_CONFIRMATION;
 
+/**
+ * Owner of security (i.e. seller) creates [AssetTransfer] request state in-order to start deal with buyer.
+ */
+
 // ******************
 // * Initiator flow *
 // ******************
@@ -61,7 +65,7 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
       if (getOurIdentity().getName() == securityBuyer.getName()) throw new InvalidPartyException("Flow initiating party should not equal to Lender of Cash party.");
 
       //initialising
-      LinkedHashMap txKeys = (LinkedHashMap)subFlow(new SwapIdentitiesFlow(securityBuyer));
+      LinkedHashMap txKeys = subFlow(new SwapIdentitiesFlow(securityBuyer));
       boolean size = txKeys.size() == 2;
       if(!size)
       {
@@ -104,7 +108,7 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
       FlowSession otherPartySession = initiateFlow(securityBuyer);
 
       // Obtaining the counter-party's signature.
-      final SignedTransaction fullySignedTx = (SignedTransaction) subFlow(
+      final SignedTransaction fullySignedTx = subFlow(
               new CollectSignaturesFlow(signedTx, ImmutableSet.of(otherPartySession), CollectionsKt.listOf(ourSigningKey),CollectSignaturesFlow.Companion.tracker()));
 
       // Finalising the transaction.

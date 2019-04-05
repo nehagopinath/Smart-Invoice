@@ -1,10 +1,7 @@
 package com.template.cordapp.common.exception;
 
-
-
 import net.corda.core.CordaRuntimeException;
 import org.jetbrains.annotations.NotNull;
-
 
 public final class InvalidPartyException extends CordaRuntimeException {
 

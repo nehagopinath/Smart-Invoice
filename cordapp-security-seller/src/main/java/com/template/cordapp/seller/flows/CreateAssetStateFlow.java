@@ -2,6 +2,7 @@ package com.template.cordapp.seller.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
 import com.template.cordapp.contract.AssetContract;
+import com.template.cordapp.flows.FlowLogicCommonMethods;
 import com.template.cordapp.state.Asset;
 import net.corda.core.contracts.*;
 import net.corda.core.flows.*;
@@ -12,7 +13,9 @@ import net.corda.core.utilities.ProgressTracker;
 
 import java.time.Duration;
 
-
+/**
+ * Create the [Asset] state on ledger. This state acting as security/bond on ledger which going to be sold for cash.
+ */
 // ******************
 // * Initiator flow *
 // ******************

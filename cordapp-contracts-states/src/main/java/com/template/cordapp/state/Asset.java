@@ -30,16 +30,13 @@ public final class Asset implements OwnableState, QueryableState {
    private final Amount purchaseCost;
    private final AbstractParty owner;
 
-   // TODO check : this was required (autofix by IDE) for the supportedSchema method
     private AssetSchema AssetSchemaV1;
 
-    // TODO In the following method actually listOf() method was used in ref kotlin code, which I was unable to use in java
    @Override
    public List<AbstractParty> getParticipants() {
       return ImmutableList.of(owner);
    }
 
-   // TODO  : not sure if this is really needed(unused method), if yes then is this syntactically right or wrong
    public final Asset withoutOwner() {
       return copy$default(this,
               (String)null,
@@ -50,19 +47,18 @@ public final class Asset implements OwnableState, QueryableState {
               (Object)null);
    }
 
-   //TODO : check OwnableState
    @Override
    public CommandAndState withNewOwner(@NotNull AbstractParty newOwner) {
       return new CommandAndState(
-              (CommandData) new AssetContract.Commands.Transfer(),
-              (OwnableState)copy$default(this, (String)null, (String)null, (Amount)null, newOwner, 7, (Object)null)
+             new AssetContract.Commands.Transfer(),
+             copy$default(this, (String)null, (String)null, (Amount)null, newOwner, 7, (Object)null)
       );
    }
 
    public PersistentState generateMappedObject(@NotNull MappedSchema schema) throws IllegalArgumentException{
       if (schema instanceof AssetSchemaV1)
       {
-         return (PersistentState)(new AssetSchemaV1.PersistentAsset(
+         return (new AssetSchemaV1.PersistentAsset(
                  this.cusip,
                  this.assetName,
                  this.purchaseCost.toString(),
@@ -75,7 +71,7 @@ public final class Asset implements OwnableState, QueryableState {
 
 
    public Iterable supportedSchemas() {
-      return (Iterable)SetsKt.setOf(AssetSchemaV1);
+      return SetsKt.setOf(AssetSchemaV1);
    }
 
 

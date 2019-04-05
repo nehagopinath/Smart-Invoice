@@ -19,7 +19,7 @@ public enum RequestStatus {
         return this.value;
     }
 
-    private RequestStatus(String value) {
+    RequestStatus(String value) {
         this.value = value;
     }
 }

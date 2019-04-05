@@ -109,9 +109,9 @@ public final class AssetTransferSchemaV1 extends MappedSchema {
          return this.participants;
       }
 
-      /*public final void setParticipants(@Nullable Set <set-?>) {
-         this.participants = var1;
-      }*/
+      public final void setParticipants(Set participants) {
+           this.participants = participants;
+       }
 
       public final String getLinearId() {
          return this.linearId;

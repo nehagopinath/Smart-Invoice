@@ -5,8 +5,6 @@ import kotlin.collections.CollectionsKt;
 import net.corda.core.serialization.SerializationWhitelist;
 import net.corda.core.transactions.TransactionBuilder;
 
-
-
 public final class SerializationWhitelistImpl implements SerializationWhitelist {
 
    public List getWhitelist() {
