@@ -44,7 +44,7 @@ public final class AssetSchemaV1 extends MappedSchema {
       }
       )
       @Nullable
-      private Set participants;
+      private Set<AbstractParty> participants;
 
       @NotNull
       public final String getCusip() {
@@ -67,15 +67,15 @@ public final class AssetSchemaV1 extends MappedSchema {
       }
 
       @Nullable
-      public final Set getParticipants() {
+      public final Set<AbstractParty> getParticipants() {
           return this.participants;
       }
 
-      public final void setParticipants(Set participants) {
+      /*public final void setParticipants(Set participants) {
          this.participants = participants;
-      }
+      }*/
 
-      public PersistentAsset(String cusip,String assetName,String purchaseCost,AbstractParty owner,Set participants) {
+      public PersistentAsset(String cusip, String assetName, String purchaseCost, AbstractParty owner, Set<AbstractParty> participants) {
          this.cusip = cusip;
          this.assetName = assetName;
          this.purchaseCost = purchaseCost;

@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class AssetTransferSchemaV1 extends MappedSchema {
 
-   private AssetTransferSchemaV1() {
+   public AssetTransferSchemaV1() {
        super(AssetTransferSchema.class, 1, ImmutableList.of(PersistentAssetTransfer.class));
    }
 
@@ -35,27 +35,27 @@ public final class AssetTransferSchemaV1 extends MappedSchema {
       @Column(
          name = "cusip"
       )
-      private String cusip;
+      public String cusip;
 
       @Column(
          name = "lender_of_security"
       )
-      private AbstractParty securitySeller;
+      public AbstractParty securitySeller;
 
       @Column(
          name = "lender_of_cash"
       )
-      private AbstractParty securityBuyer;
+      public AbstractParty securityBuyer;
 
       @Column(
          name = "clearing_house"
       )
-      private AbstractParty clearingHouse;
+      public AbstractParty clearingHouse;
 
       @Column(
          name = "status"
       )
-      private String status;
+      public String status;
 
       @ElementCollection
       @Column(
@@ -72,12 +72,12 @@ public final class AssetTransferSchemaV1 extends MappedSchema {
 )}
       )
       @Nullable
-      private Set participants;
+      public Set<AbstractParty> participants;
       @Column(
          name = "linear_id"
       )
 
-      private String linearId;
+      public String linearId;
 
 
       public final String getCusip() {
@@ -105,11 +105,11 @@ public final class AssetTransferSchemaV1 extends MappedSchema {
       }
 
       @Nullable
-      public final Set getParticipants() {
+      public final Set<AbstractParty> getParticipants() {
          return this.participants;
       }
 
-      public final void setParticipants(Set participants) {
+      public final void setParticipants(Set<AbstractParty> participants) {
            this.participants = participants;
        }
 
@@ -117,7 +117,7 @@ public final class AssetTransferSchemaV1 extends MappedSchema {
          return this.linearId;
       }
 
-      public PersistentAssetTransfer(@NotNull String cusip, @NotNull AbstractParty securitySeller, @NotNull AbstractParty securityBuyer, @Nullable AbstractParty clearingHouse, @NotNull String status, @Nullable Set participants, @NotNull String linearId) {
+      public PersistentAssetTransfer(@NotNull String cusip, @NotNull AbstractParty securitySeller, @NotNull AbstractParty securityBuyer, @Nullable AbstractParty clearingHouse, @NotNull String status, @Nullable Set<AbstractParty> participants, @NotNull String linearId) {
          this.cusip = cusip;
          this.securitySeller = securitySeller;
          this.securityBuyer = securityBuyer;

@@ -1,7 +1,6 @@
 package com.template.cordapp.seller.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.template.cordapp.clearinghouse.flows.AssetSettlementInitiatorFlow;
 import com.template.cordapp.common.exception.TooManyStatesFoundException;
 import com.template.cordapp.common.flows.IdentitySyncFlowReceive;
 import com.template.cordapp.common.flows.SignTxFlow;

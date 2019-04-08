@@ -3,6 +3,7 @@ package com.template.cordapp.utils;
 import com.template.cordapp.state.Asset;
 import kotlin.collections.CollectionsKt;
 import kotlin.collections.SetsKt;
+import kotlin.reflect.*;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.flows.FlowException;
 import net.corda.core.node.ServiceHub;
@@ -12,18 +13,23 @@ import net.corda.core.node.services.vault.CriteriaExpression.ColumnPredicateExpr
 import net.corda.core.node.services.vault.PageSpecification;
 import net.corda.core.node.services.vault.QueryCriteria.VaultCustomQueryCriteria;
 import net.corda.core.node.services.vault.Sort;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 
 public final class Utils {
 
-   //todo 9  : Resolve this class
-
    public static final StateAndRef getAssetByCusip (ServiceHub receiver, String cusip) throws FlowException{
 
-      ColumnPredicateExpression cusipExpr = Builder.INSTANCE.equal(UtilsKt.INSTANCE, cusip);
+     ColumnPredicateExpression cusipExpr = Builder.INSTANCE.equal(UtilsKt.INSTANCE, cusip);
       VaultCustomQueryCriteria cusipCriteria = new VaultCustomQueryCriteria(cusipExpr, null, null);
       VaultService vaultService = receiver.getVaultService();
-      StateAndRef ser = (StateAndRef) CollectionsKt.singleOrNull(vaultService._queryBy(cusipCriteria,
+      StateAndRef ser = CollectionsKt.singleOrNull(vaultService._queryBy(cusipCriteria,
               new PageSpecification(0, 0), new Sort((Collection) SetsKt.emptySet()),
               Asset.class).getStates());
 
@@ -35,26 +41,105 @@ public final class Utils {
    }
 }
 
-/*final class UtilsKt extends PropertyReference1 {
+
+final class UtilsKt implements KProperty1 {
+
    public static final KProperty1 INSTANCE = new UtilsKt();
 
-   public String getName() {
-      return "cusip";
+
+   @NotNull
+   @Override
+   public Getter getGetter() {
+      return null;
    }
 
-   public String getSignature() {
-      return "getCusip()Ljava/lang/String;";
-   }
-
-   public KDeclarationContainer getOwner() {
-      return Reflection.getOrCreateKotlinClass(PersistentAsset.class);
+   @Override
+   public Object get(Object o) {
+      return null;
    }
 
    @Nullable
-   public Object get(@Nullable Object receiver) {
-      return ((PersistentAsset)receiver).getCusip();
+   @Override
+   public Object getDelegate(Object o) {
+      return null;
    }
-}*/
+
+   @Override
+   public Object invoke(Object o) {
+      return null;
+   }
+
+   @Override
+   public boolean isConst() {
+      return false;
+   }
+
+   @Override
+   public boolean isLateinit() {
+      return false;
+   }
+
+   @Override
+   public boolean isAbstract() {
+      return false;
+   }
+
+   @Override
+   public boolean isFinal() {
+      return false;
+   }
+
+   @Override
+   public boolean isOpen() {
+      return false;
+   }
+
+   @NotNull
+   @Override
+   public String getName() {
+      return null;
+   }
+
+   @NotNull
+   @Override
+   public List<KParameter> getParameters() {
+      return null;
+   }
+
+   @NotNull
+   @Override
+   public KType getReturnType() {
+      return null;
+   }
+
+   @NotNull
+   @Override
+   public List<KTypeParameter> getTypeParameters() {
+      return null;
+   }
+
+   @Nullable
+   @Override
+   public KVisibility getVisibility() {
+      return null;
+   }
+
+   @Override
+   public Object call(@NotNull Object... objects) {
+      return null;
+   }
+
+   @Override
+   public Object callBy(@NotNull Map map) {
+      return null;
+   }
+
+   @NotNull
+   @Override
+   public List<Annotation> getAnnotations() {
+      return null;
+   }
+}
 
 
 

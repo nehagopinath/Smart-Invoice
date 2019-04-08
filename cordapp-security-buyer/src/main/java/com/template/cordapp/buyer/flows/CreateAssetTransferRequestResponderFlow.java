@@ -8,7 +8,7 @@ import net.corda.core.transactions.SignedTransaction;
 
 @InitiatedBy(AbstractCreateAssetTransferRequestFlow.class)
 
-class CreateAssetTransferRequestResponderFlow extends FlowLogic<SignedTransaction> {
+public class CreateAssetTransferRequestResponderFlow extends FlowLogic<SignedTransaction> {
 
    private final FlowSession otherPartySession;
 

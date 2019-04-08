@@ -43,6 +43,8 @@ dependencies {
 
     testCompile "$corda_release_group:corda-node-driver:$corda_release_version"
 
+    cordapp project(":cordapp-contracts-states")
+
 }
 
 task integrationTest(type: Test, dependsOn: []) {
