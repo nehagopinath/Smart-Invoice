@@ -52,9 +52,12 @@ public class CreateAssetStateFlow extends FlowLogic<SignedTransaction> {
         Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
         // We create the transaction components.
+        System.out.println("Initializing");
         Asset asset = new Asset(cusip, assetName, purchaseCost, getOurIdentity());
+
         Command command = new Command<>(new AssetContract.Commands.Create(), getOurIdentity().getOwningKey());
 
+        System.out.println("Now building");
         // We create a transaction builder and add the components.
         TransactionBuilder txBuilder = new TransactionBuilder(notary)
                 .addOutputState(asset, AssetContract.ASSET_CONTRACT_ID)
@@ -62,10 +65,15 @@ public class CreateAssetStateFlow extends FlowLogic<SignedTransaction> {
                 .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(30));
 
         // Signing the transaction.
+        System.out.println("Signing the transaction.");
         SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
 
         // Finalising the transaction.
-        return subFlow(new FinalityFlow(signedTx));
+        System.out.println("Finalising the transaction");
+        SignedTransaction finalTxn =  subFlow(new FinalityFlow(signedTx));
+
+        System.out.println("Finalized transaction.");
+        return finalTxn;
 
     }
 }

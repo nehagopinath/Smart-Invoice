@@ -25,8 +25,7 @@ public class IntegrationTest {
 
         @Test
         public void nodeTest() {
-
-            driver(new DriverParameters().withExtraCordappPackagesToScan(Arrays.asList("com.template.cordapp")).withIsDebug(true).withStartNodesInProcess(true),dsl -> {
+            driver(new DriverParameters().withExtraCordappPackagesToScan(Arrays.asList("com.template.cordapp.contract")).withIsDebug(true).withStartNodesInProcess(true),dsl -> {
                 // Start a pair of nodes and wait for them both to be ready.
                 List<CordaFuture<NodeHandle>> handleFutures = ImmutableList.of(
                         dsl.startNode(new NodeParameters().withProvidedName(nodeAName.getName())),
