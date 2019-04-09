@@ -1,5 +1,6 @@
 package com.template.cordapp.flows;
 
+import com.google.common.collect.ImmutableList;
 import com.template.cordapp.buyer.flows.AssetSettlementResponderFlow;
 import com.template.cordapp.buyer.flows.ConfirmAssetTransferRequestInitiatorFlow;
 import com.template.cordapp.buyer.flows.CreateAssetTransferRequestResponderFlow;
@@ -35,6 +36,7 @@ import org.junit.After;
 import org.junit.Before;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -171,7 +173,7 @@ public abstract class AbstractAssetJunitFlowTests {
 
         @Before
         public final void setup() {
-            this.network = new MockNetwork(CollectionsKt.listOf(new String[]{"com.template.cordapp.contract", "net.corda.finance", "net.corda.finance.schemas"}), (MockNetworkParameters)null, false, true, (InMemoryMessagingNetwork.ServicePeerAllocationStrategy)null, (List)null, (NetworkParameters)null);
+            this.network = new MockNetwork(ImmutableList.of("com.template.cordapp"), (MockNetworkParameters)null, false, true, (InMemoryMessagingNetwork.ServicePeerAllocationStrategy)null, (List)null, (NetworkParameters)null);
 
             MockNetwork var10001 = this.network;
             if (var10001 == null) {
@@ -217,6 +219,7 @@ public abstract class AbstractAssetJunitFlowTests {
             }
 
             var2.registerInitiatedFlow(CreateAssetTransferRequestResponderFlow.class);
+
             var2 = this.lenderOfCash;
             if (var2 == null) {
                 Intrinsics.throwUninitializedPropertyAccessException("lenderOfCash");

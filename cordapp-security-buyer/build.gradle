@@ -9,7 +9,8 @@ sourceSets {
             srcDir rootProject.file("config/dev")
         }
     }
-    test {
+
+   test {
         resources {
             srcDir rootProject.file("config/test")
         }

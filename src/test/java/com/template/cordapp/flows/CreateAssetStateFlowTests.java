@@ -7,9 +7,11 @@ import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.TransactionResolutionException;
 import net.corda.core.transactions.SignedTransaction;
 import net.corda.finance.Currencies;
+import org.junit.Before;
 import org.junit.Test;
 
 public final class CreateAssetStateFlowTests extends AbstractAssetJunitFlowTests {
+
         @Test
         public final void create_Asset_on_ledger_successfully/* $FF was: create Asset on ledger successfully*/() throws TransactionResolutionException {
             SignedTransaction stx = this.createAsset(this.getLenderOfSecurity(), this.getCusip(), "US BOND", Currencies.DOLLARS(1000));

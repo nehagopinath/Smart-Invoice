@@ -7,6 +7,7 @@ import net.corda.testing.core.TestIdentity;
 import net.corda.testing.driver.DriverParameters;
 import net.corda.testing.driver.NodeHandle;
 import net.corda.testing.driver.NodeParameters;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -25,7 +26,7 @@ public class IntegrationTest {
         @Test
         public void nodeTest() {
 
-            driver(new DriverParameters().withIsDebug(true).withStartNodesInProcess(true),dsl -> {
+            driver(new DriverParameters().withExtraCordappPackagesToScan(Arrays.asList("com.template.cordapp")).withIsDebug(true).withStartNodesInProcess(true),dsl -> {
                 // Start a pair of nodes and wait for them both to be ready.
                 List<CordaFuture<NodeHandle>> handleFutures = ImmutableList.of(
                         dsl.startNode(new NodeParameters().withProvidedName(nodeAName.getName())),

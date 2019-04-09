@@ -32,7 +32,7 @@ allprojects {
         mavenLocal()
         jcenter()
         mavenCentral()
-        maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda' }
+        maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda-releases' }
         maven { url 'https://jitpack.io' }
     }
 }
@@ -48,7 +48,8 @@ sourceSets {
             srcDir rootProject.file("config/dev")
         }
     }
-    test {
+
+ test {
         resources {
             srcDir rootProject.file("config/test")
         }
@@ -57,10 +58,11 @@ sourceSets {
         java {
             compileClasspath += main.output + test.output
             runtimeClasspath += main.output + test.output
-            srcDir file('src/integrationTest/java')
+            srcDir file('src/IntegrationTest/java')
         }
     }
 }
+
 
 configurations {
     integrationTestCompile.extendsFrom testCompile
