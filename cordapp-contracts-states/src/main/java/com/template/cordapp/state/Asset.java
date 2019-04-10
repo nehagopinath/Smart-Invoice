@@ -8,6 +8,7 @@ import java.util.List;
 import com.template.cordapp.schema.AssetSchemaV1;
 import kotlin.collections.CollectionsKt;
 import kotlin.collections.SetsKt;
+import kotlin.jvm.internal.Intrinsics;
 import net.corda.core.contracts.*;
 import net.corda.core.crypto.NullKeys;
 import net.corda.core.identity.AbstractParty;
@@ -24,19 +25,27 @@ import com.google.common.collect.ImmutableList;
 
 public final class Asset implements OwnableState, QueryableState {
 
+   @NotNull
    private final String cusip;
+   @NotNull
    private final String assetName;
    //we can include type of currency when we decide to use one, for now this is units
+   @NotNull
    private final Amount purchaseCost;
+   @NotNull
    private final AbstractParty owner;
+   @NotNull
+   private final List<AbstractParty>  participants;
 
-    private AssetSchema AssetSchemaV1;
+   private AssetSchemaV1 assetSchemaV1;
 
+   @NotNull
    @Override
    public List<AbstractParty> getParticipants() {
-      return ImmutableList.of(owner);
+      return this.participants;
    }
 
+   @NotNull
    public final Asset withoutOwner() {
       return copy$default(this,
               (String)null,
@@ -47,15 +56,20 @@ public final class Asset implements OwnableState, QueryableState {
               (Object)null);
    }
 
+   @NotNull
    @Override
    public CommandAndState withNewOwner(@NotNull AbstractParty newOwner) {
+      Intrinsics.checkParameterIsNotNull(newOwner, "newOwner");
       return new CommandAndState(
              new AssetContract.Commands.Transfer(),
              copy$default(this, (String)null, (String)null, (Amount)null, newOwner, 7, (Object)null)
       );
    }
 
+   @NotNull
    public PersistentState generateMappedObject(@NotNull MappedSchema schema) throws IllegalArgumentException{
+
+      Intrinsics.checkParameterIsNotNull(schema, "schema");
       if (schema instanceof AssetSchemaV1)
       {
          return (new AssetSchemaV1.PersistentAsset(
@@ -69,40 +83,50 @@ public final class Asset implements OwnableState, QueryableState {
       }
    }
 
-
+   @NotNull
    public Iterable supportedSchemas() {
-      return SetsKt.setOf(AssetSchemaV1);
+      return SetsKt.setOf(assetSchemaV1);
    }
 
-
+   @NotNull
    public final String getCusip() {
       return this.cusip;
    }
 
+   @NotNull
    public final String getAssetName() {
       return this.assetName;
    }
 
-
+   @NotNull
    public final Amount getPurchaseCost() {
       return this.purchaseCost;
    }
 
-
+   @NotNull
    public AbstractParty getOwner() {
       return this.owner;
    }
 
    public Asset(@NotNull String cusip, @NotNull String assetName, @NotNull Amount purchaseCost, @NotNull AbstractParty owner) {
       super();
+      Intrinsics.checkParameterIsNotNull(cusip, "cusip");
+      Intrinsics.checkParameterIsNotNull(assetName, "assetName");
+      Intrinsics.checkParameterIsNotNull(purchaseCost, "purchaseCost");
+      Intrinsics.checkParameterIsNotNull(owner, "owner");
       this.cusip = cusip;
       this.assetName = assetName;
       this.purchaseCost = purchaseCost;
       this.owner = owner;
+      this.participants = CollectionsKt.listOf(this.getOwner());
    }
 
    @NotNull
    public final Asset copy(@NotNull String cusip, @NotNull String assetName, @NotNull Amount purchaseCost, @NotNull AbstractParty owner) {
+      Intrinsics.checkParameterIsNotNull(cusip, "cusip");
+      Intrinsics.checkParameterIsNotNull(assetName, "assetName");
+      Intrinsics.checkParameterIsNotNull(purchaseCost, "purchaseCost");
+      Intrinsics.checkParameterIsNotNull(owner, "owner");
       return new Asset(cusip, assetName, purchaseCost, owner);
    }
 

@@ -47,7 +47,6 @@ final class UtilsKt implements KProperty1 {
    public static final KProperty1 INSTANCE = new UtilsKt();
 
 
-   @NotNull
    @Override
    public Getter getGetter() {
       return null;
@@ -58,7 +57,6 @@ final class UtilsKt implements KProperty1 {
       return null;
    }
 
-   @Nullable
    @Override
    public Object getDelegate(Object o) {
       return null;
@@ -94,31 +92,29 @@ final class UtilsKt implements KProperty1 {
       return false;
    }
 
-   @NotNull
    @Override
    public String getName() {
       return null;
    }
 
-   @NotNull
+
    @Override
    public List<KParameter> getParameters() {
       return null;
    }
 
-   @NotNull
+
    @Override
    public KType getReturnType() {
       return null;
    }
 
-   @NotNull
+
    @Override
    public List<KTypeParameter> getTypeParameters() {
       return null;
    }
 
-   @Nullable
    @Override
    public KVisibility getVisibility() {
       return null;
@@ -134,7 +130,6 @@ final class UtilsKt implements KProperty1 {
       return null;
    }
 
-   @NotNull
    @Override
    public List<Annotation> getAnnotations() {
       return null;

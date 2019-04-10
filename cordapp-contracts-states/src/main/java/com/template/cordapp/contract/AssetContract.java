@@ -18,14 +18,14 @@ public class AssetContract implements Contract {
     public static final String ASSET_CONTRACT_ID = AssetContract.class.getName();
 
     public interface Commands extends CommandData {
-        class Create implements Commands {
+        class Create extends TypeOnlyCommandData implements Commands {
             @Override
             public boolean equals(Object obj) {
                 return obj instanceof Create;
             }
         }
 
-        class Transfer implements Commands {
+        class Transfer extends TypeOnlyCommandData implements Commands {
             @Override
             public boolean equals(Object obj) {
                 return obj instanceof Transfer;
@@ -35,21 +35,23 @@ public class AssetContract implements Contract {
 
     public void verify(LedgerTransaction tx) {
 
-        final CommandWithParties<Commands.Create> create = requireSingleCommand(tx.getCommands(), Commands.Create.class);
-        final CommandWithParties<Commands.Transfer> transfer = requireSingleCommand(tx.getCommands(), Commands.Transfer.class);
-        final List<PublicKey> requiredSigners_create = create.getSigners();
-        final List<PublicKey> requiredSigners_transfer = transfer.getSigners();
+        final CommandWithParties<Commands> command = requireSingleCommand(tx.getCommands(), Commands.class);
+        //final CommandWithParties<Commands.Create> create = requireSingleCommand(tx.getCommands(), Commands.Create.class);
+        //final CommandWithParties<Commands.Transfer> transfer = requireSingleCommand(tx.getCommands(), Commands.Transfer.class);
+        final List<PublicKey> requiredSigners = command.getSigners();
+        //final List<PublicKey> requiredSigners_transfer = transfer.getSigners();
+        Commands value = command.getValue();
 
-        if (create.getValue() instanceof Commands.Create) {
+        if (value instanceof Commands.Create) {
 
-            verifyCreate(tx, requiredSigners_create);
+            verifyCreate(tx, requiredSigners);
 
-        } else if (transfer.getValue() instanceof Commands.Transfer) {
-            verifyTransfer(tx, requiredSigners_transfer);
+        } else if (value instanceof Commands.Transfer) {
+            verifyTransfer(tx, requiredSigners);
         } else
             try {
-                throw new IllegalAccessException("Unrecognized Command");
-            } catch (IllegalAccessException e) {
+                throw new IllegalArgumentException(("Unrecognized Command"));
+            } catch (IllegalArgumentException e) {
                 e.printStackTrace();
             }
 
