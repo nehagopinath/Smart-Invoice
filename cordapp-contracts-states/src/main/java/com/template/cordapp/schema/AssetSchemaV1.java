@@ -1,6 +1,7 @@
 package com.template.cordapp.schema;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -61,7 +62,7 @@ public final class AssetSchemaV1 extends MappedSchema {
       )
 
       @Nullable
-      private Set<AbstractParty> participants;
+      private Set<AbstractParty> participants = null;
 
       @NotNull
       public final String getCusip() {
@@ -94,12 +95,6 @@ public final class AssetSchemaV1 extends MappedSchema {
 
       public PersistentAsset(@NotNull String cusip, @NotNull String assetName, @NotNull String purchaseCost,@NotNull AbstractParty owner, @NotNull Set<AbstractParty> participants)
       {
-          super(null);
-          Intrinsics.checkParameterIsNotNull(cusip, "cusip");
-          Intrinsics.checkParameterIsNotNull(assetName, "assetName");
-          Intrinsics.checkParameterIsNotNull(purchaseCost, "purchaseCost");
-          Intrinsics.checkParameterIsNotNull(owner, "owner");
-
           this.cusip = cusip;
           this.assetName = assetName;
           this.purchaseCost = purchaseCost;

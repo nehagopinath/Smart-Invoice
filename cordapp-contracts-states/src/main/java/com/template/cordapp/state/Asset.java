@@ -4,6 +4,7 @@ import com.template.cordapp.contract.AssetContract;
 import com.template.cordapp.schema.AssetSchema;
 
 import java.util.List;
+import java.util.Set;
 
 import com.template.cordapp.schema.AssetSchemaV1;
 import kotlin.collections.CollectionsKt;
@@ -15,6 +16,7 @@ import net.corda.core.identity.AbstractParty;
 import net.corda.core.schemas.MappedSchema;
 import net.corda.core.schemas.PersistentState;
 import net.corda.core.schemas.QueryableState;
+import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.ImmutableList;
 
@@ -42,19 +44,34 @@ public final class Asset implements OwnableState, QueryableState {
    @NotNull
    @Override
    public List<AbstractParty> getParticipants() {
-      return this.participants;
+       return java.util.Collections.singletonList(this.owner);
    }
 
-   @NotNull
-   public final Asset withoutOwner() {
-      return copy$default(this,
-              (String)null,
-              (String)null,
-              (Amount)null,
-              (AbstractParty)NullKeys.INSTANCE.getNULL_PARTY(),
-              7,
-              (Object)null);
-   }
+    @NotNull
+    public Iterable<MappedSchema> supportedSchemas() {
+        return ImmutableList.of(new AssetSchemaV1());
+    }
+
+    @NotNull
+    public final String getCusip() {
+        return this.cusip;
+    }
+
+    @NotNull
+    public final String getAssetName() {
+        return this.assetName;
+    }
+
+    @NotNull
+    public final Amount getPurchaseCost() {
+        return this.purchaseCost;
+    }
+
+    @NotNull
+    public AbstractParty getOwner() {
+        return this.owner;
+    }
+
 
    @NotNull
    @Override
@@ -68,45 +85,21 @@ public final class Asset implements OwnableState, QueryableState {
 
    @NotNull
    public PersistentState generateMappedObject(@NotNull MappedSchema schema) throws IllegalArgumentException{
-
-      Intrinsics.checkParameterIsNotNull(schema, "schema");
       if (schema instanceof AssetSchemaV1)
       {
-         return (new AssetSchemaV1.PersistentAsset(
+          Set<AbstractParty> setParticipants = CollectionsKt.toMutableSet((Iterable)java.util.Collections.singletonList(this.owner));
+         return new AssetSchemaV1.PersistentAsset(
                  this.cusip,
                  this.assetName,
                  this.purchaseCost.toString(),
                  this.getOwner(),
-                 CollectionsKt.toMutableSet((Iterable)this.getParticipants())));
+                 setParticipants);
       } else {
          throw (new IllegalArgumentException("Unrecognised schema " + schema));
       }
    }
 
-   @NotNull
-   public Iterable supportedSchemas() {
-      return SetsKt.setOf(assetSchemaV1);
-   }
 
-   @NotNull
-   public final String getCusip() {
-      return this.cusip;
-   }
-
-   @NotNull
-   public final String getAssetName() {
-      return this.assetName;
-   }
-
-   @NotNull
-   public final Amount getPurchaseCost() {
-      return this.purchaseCost;
-   }
-
-   @NotNull
-   public AbstractParty getOwner() {
-      return this.owner;
-   }
 
    public Asset(@NotNull String cusip, @NotNull String assetName, @NotNull Amount purchaseCost, @NotNull AbstractParty owner) {
       super();

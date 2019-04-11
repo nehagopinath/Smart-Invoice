@@ -1,5 +1,7 @@
 package com.template.cordapp.state;
 
+import com.google.common.collect.ImmutableList;
+import com.template.cordapp.schema.AssetSchemaV1;
 import com.template.cordapp.schema.AssetTransferSchemaV1;
 
 import java.util.Arrays;
@@ -40,7 +42,7 @@ public final class AssetTransfer implements LinearState, QueryableState {
       this.linearId = linearId;
    }
 
-   private List<AbstractParty> participants =  Arrays.asList(securityBuyer, securitySeller);
+   private List<AbstractParty> participants;
    private UniqueIdentifier linearId = new UniqueIdentifier();
 
     private AssetTransfer AssetTransferSchemaV1;
@@ -56,9 +58,10 @@ public final class AssetTransfer implements LinearState, QueryableState {
    }
 
    @NotNull
-    public Iterable supportedSchemas() {
-        return (Iterable)SetsKt.setOf(AssetTransferSchemaV1);
-    }
+   public Iterable<MappedSchema> supportedSchemas() {
+      return ImmutableList.of(new AssetTransferSchemaV1());
+   }
+
 
    @NotNull
    public final Asset getAsset() {

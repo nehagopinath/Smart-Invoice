@@ -18,6 +18,7 @@ import net.corda.core.contracts.*;
 import net.corda.core.flows.*;
 import net.corda.core.identity.AnonymousParty;
 import net.corda.core.identity.Party;
+import net.corda.core.node.ServiceHub;
 import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
@@ -64,17 +65,18 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
            FINALISING
    );
 
-   public CreateAssetTransferRequestInitiatorFlow(String cusip, Party securityBuyer) {
-      this.cusip = cusip;
-      this.securityBuyer = securityBuyer;
-   }
-
    @Override
    public ProgressTracker getProgressTracker() {
       return progressTracker;
    }
 
-   /**
+    public CreateAssetTransferRequestInitiatorFlow(String cusip, Party securityBuyer) {
+        this.cusip = cusip;
+        this.securityBuyer = securityBuyer;
+    }
+
+
+    /**
     * The flow logic is encapsulated within the call() method.
     */
    @Suspendable
@@ -105,6 +107,8 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
          throw new FlowException("Couldn't create lender's (securityBuyer) anonymous identity.");
       }
 
+      ServiceHub receiver = this.getServiceHub() ;
+      System.out.println(receiver);
       // We create the transaction components.
       Asset asset = (Asset) Utils.getAssetByCusip(this.getServiceHub(), this.cusip).getState().getData();
 

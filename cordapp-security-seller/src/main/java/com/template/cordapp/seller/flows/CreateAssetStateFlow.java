@@ -76,6 +76,8 @@ public class CreateAssetStateFlow {
             // We create the transaction components.
             progressTracker.setCurrentStep(INITIALISING);
 
+            System.out.println(getOurIdentity());
+
             Asset asset = new Asset(cusip, assetName, purchaseCost, getOurIdentity());
 
             progressTracker.setCurrentStep(BUILDING);
@@ -91,11 +93,11 @@ public class CreateAssetStateFlow {
 
             // Finalising the transaction.
             progressTracker.setCurrentStep(FINALISING);
-            SignedTransaction finalTxn = subFlow(new FinalityFlow(signedTx, FINALISING.childProgressTracker()));
+            SignedTransaction finalTxn;
+            finalTxn = subFlow(new FinalityFlow(signedTx, FINALISING.childProgressTracker()));
             return finalTxn;
 
         }
-
     }
 }
 

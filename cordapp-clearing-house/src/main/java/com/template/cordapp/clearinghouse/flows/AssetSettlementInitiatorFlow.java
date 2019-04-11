@@ -49,9 +49,40 @@ import static com.template.cordapp.state.RequestStatus.TRANSFERRED;
 
 public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementFlow {
 
-    private final ProgressTracker progressTracker = new ProgressTracker();
     private final UniqueIdentifier linearId;
 
+    private final ProgressTracker.Step INITIALISING = new ProgressTracker.Step("Performing initial steps");
+    private final ProgressTracker.Step BUILDING = new ProgressTracker.Step("Building and verifying transaction");
+    private final ProgressTracker.Step SIGNING = new ProgressTracker.Step("Signing transaction");
+    private final ProgressTracker.Step COLLECT_STATES = new ProgressTracker.Step("Collect Asset and Cash states from counterparty.");
+    private final ProgressTracker.Step FINALISING = new ProgressTracker.Step("Finalising transaction") {
+        @Override
+        public ProgressTracker childProgressTracker() {
+            return FinalityFlow.Companion.tracker();
+        }
+    };
+
+    //Add a child progress tracker here, not very important
+
+    private final ProgressTracker.Step IDENTITY_SYNC = new ProgressTracker.Step("Sync identities with counter parties.");
+
+    private final ProgressTracker.Step COLLECTING = new ProgressTracker.Step("Collecting counterparty signature.") {
+        @Override
+        public ProgressTracker childProgressTracker() {
+            return CollectSignaturesFlow.Companion.tracker();
+        }
+    };
+
+
+    private final ProgressTracker progressTracker = new ProgressTracker(
+            INITIALISING,
+            BUILDING,
+            COLLECT_STATES,
+            IDENTITY_SYNC,
+            SIGNING,
+            COLLECTING,
+            FINALISING
+    );
 
     @Override
     public ProgressTracker getProgressTracker() {
@@ -69,6 +100,7 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
 
         Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
         //initialization
+        progressTracker.setCurrentStep(INITIALISING);
         StateAndRef inAssetTransfer = this.loadState(this.getServiceHub(), this.linearId, AssetTransfer.class);
         List participants = (inAssetTransfer.getState().getData()).getParticipants();
 
@@ -88,6 +120,7 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
 
 
         // build
+        progressTracker.setCurrentStep(BUILDING);
         TransactionBuilder txBuilder = new TransactionBuilder(notary)
                 .addInputState(inAssetTransfer)
                 .addOutputState(outAssetTransfer, AssetTransferContract.ASSET_CONTRACT_ID)
@@ -95,6 +128,7 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
                 .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(60));
 
         //collect states
+        progressTracker.setCurrentStep(COLLECT_STATES);
 
         //Create temporary partial transaction.
         SignedTransaction tempPtx = this.getServiceHub().signInitialTransaction(txBuilder);
@@ -192,18 +226,22 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
 
         //todo 5 : to be resolved after resolving Identity Sync Flow
 
+        progressTracker.setCurrentStep(IDENTITY_SYNC);
         /*this.subFlow(IdentitySyncFlow.Send(otherPartySession,
                 txBuilder.toWireTransaction(getServiceHub()),
                 IdentitySyncFlow.Companion.tracker)); */
 
         // Signature
+        progressTracker.setCurrentStep(SIGNING);
         SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder, outAssetTransfer.getClearingHouse().getOwningKey());
 
         // Obtaining the counter-party's signature.
+        progressTracker.setCurrentStep(COLLECTING);
         final SignedTransaction fullySignedTx = subFlow(
                 new CollectSignaturesFlow(signedTx, otherPartySession, CollectionsKt.listOf(outAssetTransfer.getClearingHouse().getOwningKey()), CollectSignaturesFlow.Companion.tracker()));
 
         //finalize
+        progressTracker.setCurrentStep(FINALISING);
         return subFlow(new FinalityFlow(fullySignedTx));
 
     }

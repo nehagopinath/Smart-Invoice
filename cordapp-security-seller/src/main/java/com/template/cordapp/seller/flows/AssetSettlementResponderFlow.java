@@ -45,20 +45,34 @@ import java.util.List;
 
 public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransaction> implements FlowLogicCommonMethods {
 
-   private final ProgressTracker progressTracker = new ProgressTracker();
    private final FlowSession otherSideSession;
+
+   private final ProgressTracker.Step ADD_ASSET = new ProgressTracker.Step("Performing initial steps");
+   private final ProgressTracker.Step SYNC_IDENTITY  = new ProgressTracker.Step("Building and verifying transaction");
+
+
+   /**
+    * The progress tracker provides checkpoints indicating the progress of the flow to observers.
+    */
+
+   private final ProgressTracker progressTracker = new ProgressTracker(
+           ADD_ASSET,
+           SYNC_IDENTITY
+   );
+
+   @Override
+   public ProgressTracker getProgressTracker() {
+      return progressTracker;
+   }
 
    public AssetSettlementResponderFlow(FlowSession otherSideSession) {
       this.otherSideSession = otherSideSession;
    }
 
-   public ProgressTracker getProgressTracker() {
-      return this.progressTracker;
-   }
-
    @Suspendable
    public SignedTransaction call() throws FlowException {
 
+      progressTracker.setCurrentStep(ADD_ASSET);
       Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
 
@@ -104,13 +118,16 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
 
       //CommandAndState(cmd, assetOutState)commandAndState = (CommandAndState)assetStateAndRef.getState().getData().withNewOwner(assetTransfer.getSecurityBuyer());
 
+
       TransactionBuilder txBuilder = new TransactionBuilder(notary)
               .addInputState(assetStateAndRef);
               //.addOutputState(assetOutState, AssetContract.ASSET_CONTRACT_ID)
              // .addCommand(cmd, assetOutState.getOwner.getOwningKey);
 
+
       SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
 
+      progressTracker.setCurrentStep(SYNC_IDENTITY);
       this.subFlow((new SendTransactionFlow(otherSideSession, signedTx)));
 
       subFlow(new IdentitySyncFlow.Receive(otherSideSession));
