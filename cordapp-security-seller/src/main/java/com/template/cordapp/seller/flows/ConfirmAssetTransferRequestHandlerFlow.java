@@ -2,7 +2,6 @@ package com.template.cordapp.seller.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
 import com.template.cordapp.common.flows.SignTxFlow;
-import com.template.cordapp.common.flows.IdentitySyncFlowReceive;
 import com.template.cordapp.flows.AbstractConfirmAssetTransferRequestFlow;
 import net.corda.confidential.IdentitySyncFlow;
 import net.corda.core.flows.FlowException;
@@ -11,7 +10,6 @@ import net.corda.core.flows.FlowSession;
 import net.corda.core.flows.InitiatedBy;
 import net.corda.core.transactions.SignedTransaction;
 
-//todo 3: resolve the circular dependency
 @InitiatedBy(AbstractConfirmAssetTransferRequestFlow.class)
 
 public class ConfirmAssetTransferRequestHandlerFlow extends FlowLogic<SignedTransaction> {

@@ -56,3 +56,6 @@ task integrationTest(type: Test, dependsOn: []) {
 tasks.withType(JavaCompile) {
     options.compilerArgs << "-parameters" // Required by Corda's serialisation framework.
 }
+
+
+

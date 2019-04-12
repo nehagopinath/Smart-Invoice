@@ -45,8 +45,6 @@ import static com.template.cordapp.state.RequestStatus.TRANSFERRED;
  */
 
 @StartableByRPC
-
-
 public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementFlow {
 
     private final UniqueIdentifier linearId;
@@ -64,7 +62,13 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
 
     //Add a child progress tracker here, not very important
 
-    private final ProgressTracker.Step IDENTITY_SYNC = new ProgressTracker.Step("Sync identities with counter parties.");
+    private static final ProgressTracker.Step IDENTITY_SYNC = new ProgressTracker.Step("Sync identities with counter parties.") {
+        @Override
+        public ProgressTracker childProgressTracker() {
+            return IdentitySyncFlow.send.Companion.tracker();
+        }
+
+    };
 
     private final ProgressTracker.Step COLLECTING = new ProgressTracker.Step("Collecting counterparty signature.") {
         @Override
@@ -73,16 +77,15 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
         }
     };
 
-
-    private final ProgressTracker progressTracker = new ProgressTracker(
-            INITIALISING,
-            BUILDING,
-            COLLECT_STATES,
-            IDENTITY_SYNC,
-            SIGNING,
-            COLLECTING,
-            FINALISING
-    );
+        final ProgressTracker progressTracker = new ProgressTracker(
+                INITIALISING,
+                BUILDING,
+                COLLECT_STATES,
+                IDENTITY_SYNC,
+                SIGNING,
+                COLLECTING,
+                FINALISING
+        );
 
     @Override
     public ProgressTracker getProgressTracker() {
@@ -107,7 +110,6 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
         Asset asset = (Asset) inAssetTransfer.getState().getData();
         AssetTransfer assetTransfer = (AssetTransfer) inAssetTransfer.getState().getData();
 
-        //todo 4: check if this is correct
         AssetTransfer outAssetTransfer = new AssetTransfer(asset, null, null, null, TRANSFERRED, participants, linearId);
 
         if (getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), outAssetTransfer.getClearingHouse()).getName()) {
@@ -224,12 +226,11 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
         // Creating a session with the other party.
         ImmutableSet<FlowSession> otherPartySession = ImmutableSet.of(securityBuyerSession,securitySellerSession);
 
-        //todo 5 : to be resolved after resolving Identity Sync Flow
 
         progressTracker.setCurrentStep(IDENTITY_SYNC);
-        /*this.subFlow(IdentitySyncFlow.Send(otherPartySession,
+        this.subFlow(new IdentitySyncFlow.send(otherPartySession,
                 txBuilder.toWireTransaction(getServiceHub()),
-                IdentitySyncFlow.Companion.tracker)); */
+                IDENTITY_SYNC.childProgressTracker()));
 
         // Signature
         progressTracker.setCurrentStep(SIGNING);
@@ -242,7 +243,7 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
 
         //finalize
         progressTracker.setCurrentStep(FINALISING);
-        return subFlow(new FinalityFlow(fullySignedTx));
+        return subFlow(new FinalityFlow(fullySignedTx,FINALISING.childProgressTracker()));
 
     }
 }

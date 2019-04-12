@@ -6,6 +6,7 @@ import com.template.cordapp.schema.AssetTransferSchemaV1;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import kotlin.collections.CollectionsKt;
 import kotlin.collections.SetsKt;
@@ -25,27 +26,40 @@ import org.jetbrains.annotations.Nullable;
 
 public final class AssetTransfer implements LinearState, QueryableState {
 
+   @NotNull
    private final Asset asset;
+   @NotNull
    private AbstractParty securitySeller;
+   @NotNull
    private AbstractParty securityBuyer;
+   @Nullable
    private AbstractParty clearingHouse;
+   @NotNull
    private final RequestStatus status;
+   @NotNull
+   private final List<AbstractParty> participants;
+   @NotNull
+   private final UniqueIdentifier linearId;
 
-   public AssetTransfer(@NotNull Asset asset, @NotNull AbstractParty securitySeller, @NotNull AbstractParty securityBuyer, @Nullable AbstractParty clearingHouse, @NotNull RequestStatus status, @NotNull List participants, @NotNull UniqueIdentifier linearId) {
+   private AssetTransfer assetTransferSchemaV1;
+
+   public AssetTransfer(@NotNull Asset asset, @NotNull AbstractParty securitySeller, @NotNull AbstractParty securityBuyer, @Nullable AbstractParty clearingHouse, @NotNull RequestStatus status, @NotNull List<AbstractParty>  participants, @NotNull UniqueIdentifier linearId) {
+
       super();
+      Intrinsics.checkParameterIsNotNull(asset, "asset");
+      Intrinsics.checkParameterIsNotNull(securitySeller, "securitySeller");
+      Intrinsics.checkParameterIsNotNull(securityBuyer, "securityBuyer");
+      Intrinsics.checkParameterIsNotNull(status, "status");
+      Intrinsics.checkParameterIsNotNull(participants, "participants");
+      Intrinsics.checkParameterIsNotNull(linearId, "linearId");
       this.asset = asset;
       this.securitySeller = securitySeller;
       this.securityBuyer = securityBuyer;
       this.clearingHouse = clearingHouse;
       this.status = status;
-      this.participants = getParticipants();
+      this.participants = participants;
       this.linearId = linearId;
    }
-
-   private List<AbstractParty> participants;
-   private UniqueIdentifier linearId = new UniqueIdentifier();
-
-    private AssetTransfer AssetTransferSchemaV1;
 
     @NotNull
    public PersistentState generateMappedObject(@NotNull MappedSchema schema) {
@@ -90,7 +104,7 @@ public final class AssetTransfer implements LinearState, QueryableState {
 
    @NotNull
    public List<AbstractParty> getParticipants() {
-      return Arrays.asList(securityBuyer, securitySeller);
+      return this.participants;
    }
 
    @NotNull
@@ -99,7 +113,7 @@ public final class AssetTransfer implements LinearState, QueryableState {
    }
 
    @NotNull
-   public final AssetTransfer copy(@NotNull Asset asset, @NotNull AbstractParty securitySeller, @NotNull AbstractParty securityBuyer, @Nullable AbstractParty clearingHouse, @NotNull RequestStatus status, @NotNull List participants, @NotNull UniqueIdentifier linearId) {
+   public final AssetTransfer copy(@NotNull Asset asset, @NotNull AbstractParty securitySeller, @NotNull AbstractParty securityBuyer, @Nullable AbstractParty clearingHouse, @NotNull RequestStatus status, @NotNull List<AbstractParty> participants, @NotNull UniqueIdentifier linearId) {
       Intrinsics.checkParameterIsNotNull(asset, "asset");
       Intrinsics.checkParameterIsNotNull(securitySeller, "securitySeller");
       Intrinsics.checkParameterIsNotNull(securityBuyer, "securityBuyer");

@@ -4,6 +4,7 @@ import co.paralleluniverse.fibers.Suspendable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.template.cordapp.common.exception.InvalidPartyException;
+import com.template.cordapp.common.flows.IdentitySyncFlow;
 import com.template.cordapp.contract.AssetTransferContract;
 import com.template.cordapp.flows.AbstractConfirmAssetTransferRequestFlow;
 import com.template.cordapp.state.Asset;
@@ -11,9 +12,8 @@ import com.template.cordapp.state.AssetTransfer;
 import com.template.cordapp.state.RequestStatus;
 import java.security.PublicKey;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
+
 import kotlin.collections.CollectionsKt;
 import kotlin.jvm.internal.Intrinsics;
 import net.corda.confidential.SwapIdentitiesFlow;
@@ -40,20 +40,46 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
 
     private final UniqueIdentifier linearId;
     private final Party clearingHouse;
-    /**
-     * The progress tracker provides checkpoints indicating the progress of the flow to observers.
-     */
-    private final ProgressTracker progressTracker = new ProgressTracker();
 
     public ConfirmAssetTransferRequestInitiatorFlow(UniqueIdentifier linearId, Party clearingHouse) {
         this.linearId = linearId;
         this.clearingHouse = clearingHouse;
     }
 
-    @Override
-    public ProgressTracker getProgressTracker() {
-        return progressTracker;
-    }
+    private final ProgressTracker.Step SWAP_IDENTITY = new ProgressTracker.Step("Swap Identity");
+    private final ProgressTracker.Step INITIALISING = new ProgressTracker.Step("Performing initial steps");
+    private final ProgressTracker.Step BUILDING = new ProgressTracker.Step("Building and verifying transaction");
+    private final ProgressTracker.Step SIGNING = new ProgressTracker.Step("Signing transaction");
+    private final ProgressTracker.Step IDENTITY_SYNC = new ProgressTracker.Step("Sync identities with counter parties") {
+        @Override
+        public ProgressTracker childProgressTracker() {
+            return IdentitySyncFlow.send.Companion.tracker();
+        }
+
+    };
+    private final ProgressTracker.Step COLLECTING = new ProgressTracker.Step("Collecting counterparty signature") {
+        @Override
+        public ProgressTracker childProgressTracker() {
+            return CollectSignaturesFlow.Companion.tracker();
+        }
+
+    };
+    private final ProgressTracker.Step FINALISING = new ProgressTracker.Step("Finalising transaction") {
+
+        @Override
+        public ProgressTracker childProgressTracker() { return FinalityFlow.Companion.tracker(); }
+
+    };
+
+    final ProgressTracker progressTracker = new ProgressTracker(
+            SWAP_IDENTITY,
+            INITIALISING,
+            BUILDING,
+            SIGNING,
+            IDENTITY_SYNC,
+            COLLECTING,
+            FINALISING
+    );
 
     /**
      * The flow logic is encapsulated within the call() method.
@@ -61,6 +87,8 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
     @Suspendable
     @Override
     public SignedTransaction call() throws FlowException {
+
+        progressTracker.setCurrentStep(SWAP_IDENTITY);
         // We retrieve the notary identity from the network map.
         Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
@@ -77,7 +105,7 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
             throw new FlowException("Couldn't create clearing house anonymous identity.");
         }
 
-        //initialising
+        progressTracker.setCurrentStep(INITIALISING);
 
         AnonymousParty anonymousMe = (AnonymousParty) txKeys.get(this.getOurIdentity());
 
@@ -106,6 +134,7 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
                 new AssetTransferContract.Commands.ConfirmRequest(),
                 ImmutableList.of(assetTransfer.getParticipants()));
 
+        progressTracker.setCurrentStep(BUILDING);
 
         // We create a transaction builder and add the components.
         TransactionBuilder txBuilder = new TransactionBuilder(notary)
@@ -115,22 +144,64 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
                 .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(60));
 
         // Signing the transaction.
+        progressTracker.setCurrentStep(SIGNING);
         SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder, ourSigningKey);
 
-        FlowSession otherPartySession = initiateFlow(clearingHouse);
+        Iterable $receiver$iv = (Iterable)participants;
+        Collection destination$iv$iv = (Collection)(new ArrayList(CollectionsKt.collectionSizeOrDefault($receiver$iv, 10)));
+        Iterator var31 = $receiver$iv.iterator();
 
-        //TODO 1: to be resolved after resolving identity sync flow
+        boolean var15;
+        Object item$iv$iv;
+        while(var31.hasNext()) {
+            item$iv$iv = var31.next();
+            AbstractParty it = (AbstractParty)item$iv$iv;
+            var15 = false;
+            Party var38 = this.resolveIdentity(this.getServiceHub(), it);
+            destination$iv$iv.add(var38);
+        }
 
-        /*
-        subFlow(new IdentitySyncFlow.send(
-                otherPartySession,
-                txb.toWireTransaction(getServiceHub(),IdentitySyncFlow.Companion.tracker())));*/
+        $receiver$iv = (Iterable)((List)destination$iv$iv);
+        destination$iv$iv = (Collection)(new ArrayList());
+        var31 = $receiver$iv.iterator();
+
+        Party it;
+        while(var31.hasNext()) {
+            item$iv$iv = var31.next();
+            it = (Party)item$iv$iv;
+            var15 = false;
+            if (Intrinsics.areEqual(it.getName(), this.getOurIdentity().getName()) ^ true) {
+                destination$iv$iv.add(item$iv$iv);
+            }
+        }
+
+        $receiver$iv = (Iterable)((List)destination$iv$iv);
+        destination$iv$iv = (Collection)(new ArrayList(CollectionsKt.collectionSizeOrDefault($receiver$iv, 10)));
+        var31 = $receiver$iv.iterator();
+
+        while(var31.hasNext()) {
+            item$iv$iv = var31.next();
+            it = (Party)item$iv$iv;
+            var15 = false;
+            FlowSession var39 = this.initiateFlow(it);
+            destination$iv$iv.add(var39);
+        }
+
+        Set<AbstractParty> otherPartySession = CollectionsKt.toSet(destination$iv$iv);
+
+        progressTracker.setCurrentStep(IDENTITY_SYNC);
+
+        this.subFlow(new IdentitySyncFlow.send(otherPartySession,
+                txBuilder.toWireTransaction(getServiceHub()),
+                IDENTITY_SYNC.childProgressTracker()));
 
         // Obtaining the counter-party's signature.
+        progressTracker.setCurrentStep(COLLECTING);
         final SignedTransaction fullySignedTx = subFlow(
-                new CollectSignaturesFlow(signedTx, ImmutableSet.of(otherPartySession), CollectionsKt.listOf(ourSigningKey), CollectSignaturesFlow.Companion.tracker()));
+                new CollectSignaturesFlow(signedTx, (Collection)otherPartySession, CollectionsKt.listOf(ourSigningKey), CollectSignaturesFlow.Companion.tracker()));
 
         // Finalising the transaction.
+        progressTracker.setCurrentStep(FINALISING);
         return subFlow(new FinalityFlow(fullySignedTx));
 
 

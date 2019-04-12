@@ -2,7 +2,6 @@ package com.template.cordapp.seller.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
 import com.template.cordapp.common.exception.TooManyStatesFoundException;
-import com.template.cordapp.common.flows.IdentitySyncFlowReceive;
 import com.template.cordapp.common.flows.SignTxFlow;
 import com.template.cordapp.contract.AssetContract;
 import com.template.cordapp.contract.AssetTransferContract;
@@ -40,15 +39,14 @@ import java.util.List;
  * to send input, output [Asset] states and command to change ownership to `Buyer` party.
  */
 
-//todo 5: resolve the circular Dependency
 @InitiatedBy(AbstractAssetSettlementFlow.class)
 
 public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransaction> implements FlowLogicCommonMethods {
 
    private final FlowSession otherSideSession;
 
-   private final ProgressTracker.Step ADD_ASSET = new ProgressTracker.Step("Performing initial steps");
-   private final ProgressTracker.Step SYNC_IDENTITY  = new ProgressTracker.Step("Building and verifying transaction");
+   private final ProgressTracker.Step ADD_ASSET = new ProgressTracker.Step("Add Asset states to transaction builder");
+   private final ProgressTracker.Step SYNC_IDENTITY  = new ProgressTracker.Step("Sync identities");
 
 
    /**
@@ -107,14 +105,13 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
       //throw too many states found exception if this fails
       AssetTransfer assetTransfer = (AssetTransfer) CollectionsKt.singleOrNull((List) destinationAT);
 
-      //todo 6: Check this exception
+
       if (assetTransfer != null){
          throw (new TooManyStatesFoundException("Transaction with more than one `AssetTransfer` " + "input states received from `" + this.otherSideSession.getCounterparty() + "` party"));
       }
 
       StateAndRef assetStateAndRef = (StateAndRef) Utils.getAssetByCusip(getServiceHub(),assetTransfer.getAsset().getCusip());
 
-      //todo 7: Check this below line for the function withNewOwner()
 
       //CommandAndState(cmd, assetOutState)commandAndState = (CommandAndState)assetStateAndRef.getState().getData().withNewOwner(assetTransfer.getSecurityBuyer());
 

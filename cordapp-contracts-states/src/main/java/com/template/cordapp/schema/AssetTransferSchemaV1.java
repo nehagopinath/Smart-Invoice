@@ -1,5 +1,6 @@
 package com.template.cordapp.schema;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -11,18 +12,29 @@ import javax.persistence.Table;
 
 import com.google.common.collect.ImmutableList;
 
+import kotlin.collections.CollectionsKt;
+import kotlin.jvm.internal.Intrinsics;
+import net.corda.core.crypto.NullKeys;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.schemas.MappedSchema;
 import net.corda.core.schemas.PersistentState;
+import net.corda.core.schemas.PersistentStateRef;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 
 public final class AssetTransferSchemaV1 extends MappedSchema {
 
+    public static final AssetTransferSchemaV1 INSTANCE;
+
    public AssetTransferSchemaV1() {
-       super(AssetTransferSchema.class, 1, ImmutableList.of(PersistentAssetTransfer.class));
+       super(AssetTransferSchema.INSTANCE.getClass(), 1, CollectionsKt.listOf(PersistentAssetTransfer.class));
    }
+
+    static {
+        AssetTransferSchemaV1 var0 = new AssetTransferSchemaV1();
+        INSTANCE = var0;
+    }
 
    @Entity
    @Table(name = "asset_transfer",
@@ -35,27 +47,27 @@ public final class AssetTransferSchemaV1 extends MappedSchema {
       @Column(
          name = "cusip"
       )
-      public String cusip;
+      @NotNull public String cusip;
 
       @Column(
          name = "lender_of_security"
       )
-      public AbstractParty securitySeller;
+      @NotNull public AbstractParty securitySeller;
 
       @Column(
          name = "lender_of_cash"
       )
-      public AbstractParty securityBuyer;
+      @NotNull public AbstractParty securityBuyer;
 
       @Column(
          name = "clearing_house"
       )
-      public AbstractParty clearingHouse;
+      @Nullable public AbstractParty clearingHouse;
 
       @Column(
          name = "status"
       )
-      public String status;
+      @NotNull public String status;
 
       @ElementCollection
       @Column(
@@ -77,29 +89,29 @@ public final class AssetTransferSchemaV1 extends MappedSchema {
          name = "linear_id"
       )
 
-      public String linearId;
+      @NotNull public String linearId;
 
-
+       @NotNull
       public final String getCusip() {
          return this.cusip;
       }
 
-
+       @NotNull
       public final AbstractParty getSecuritySeller() {
          return this.securitySeller;
       }
 
-
+       @NotNull
       public final AbstractParty getSecurityBuyer() {
          return this.securityBuyer;
       }
 
-
+       @Nullable
       public final AbstractParty getClearingHouse() {
          return this.clearingHouse;
       }
 
-
+       @NotNull
       public final String getStatus() {
          return this.status;
       }
@@ -109,32 +121,40 @@ public final class AssetTransferSchemaV1 extends MappedSchema {
          return this.participants;
       }
 
-      public final void setParticipants(Set<AbstractParty> participants) {
+
+      public final void setParticipants(@Nullable Set<AbstractParty> participants) {
            this.participants = participants;
        }
 
-      public final String getLinearId() {
+       @NotNull public final String getLinearId() {
          return this.linearId;
       }
 
       public PersistentAssetTransfer(@NotNull String cusip, @NotNull AbstractParty securitySeller, @NotNull AbstractParty securityBuyer, @Nullable AbstractParty clearingHouse, @NotNull String status, @Nullable Set<AbstractParty> participants, @NotNull String linearId) {
-         this.cusip = cusip;
-         this.securitySeller = securitySeller;
-         this.securityBuyer = securityBuyer;
-         this.clearingHouse = clearingHouse;
-         this.status = status;
-         this.participants = participants;
-         this.linearId = linearId;
+
+          super(null);
+          Intrinsics.checkParameterIsNotNull(cusip, "cusip");
+          Intrinsics.checkParameterIsNotNull(securitySeller, "securitySeller");
+          Intrinsics.checkParameterIsNotNull(securityBuyer, "securityBuyer");
+          Intrinsics.checkParameterIsNotNull(status, "status");
+          Intrinsics.checkParameterIsNotNull(linearId, "linearId");
+          this.cusip = cusip;
+          this.securitySeller = securitySeller;
+          this.securityBuyer = securityBuyer;
+          this.clearingHouse = clearingHouse;
+          this.status = status;
+          this.participants = participants;
+          this.linearId = linearId;
       }
 
        public PersistentAssetTransfer(){
-          this.cusip = null;
-           this.securitySeller = null;
-           this.securityBuyer = null;
-           this.clearingHouse = null;
-           this.status = null;
-           this.participants = null;
-           this.linearId = null;
+           this.cusip = "default-constructor-required-for-hibernate";
+           this.securitySeller = NullKeys.INSTANCE.getNULL_PARTY();
+           this.securityBuyer = NullKeys.INSTANCE.getNULL_PARTY();
+           this.clearingHouse = NullKeys.INSTANCE.getNULL_PARTY();
+           this.status = "";
+           this.participants = (Set)(new LinkedHashSet());
+           this.linearId = "";
        }
    }
 }

@@ -1,6 +1,8 @@
 package com.template.cordapp.state;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import net.corda.core.serialization.CordaSerializable;
+import org.jetbrains.annotations.NotNull;
 
 
 @CordaSerializable
@@ -11,9 +13,12 @@ public enum RequestStatus {
     REJECTED("Rejected"), // on invalid asset data clearing house reject transaction with this status.
     FAILED("Failed"); // on fail of settlement e.g. with insufficient cash from Buyer party.
 
+    @JsonValue
+    @NotNull
     private String value;
 
     // getter method
+    @NotNull
     public String getValue()
     {
         return this.value;

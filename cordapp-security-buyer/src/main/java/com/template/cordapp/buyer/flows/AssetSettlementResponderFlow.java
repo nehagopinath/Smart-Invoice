@@ -2,8 +2,7 @@ package com.template.cordapp.buyer.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
 import com.template.cordapp.common.exception.TooManyStatesFoundException;
-import com.template.cordapp.common.flows.IdentitySyncFlowReceive;
-import com.template.cordapp.common.flows.IdentitySyncFlowSend;
+import com.template.cordapp.common.flows.IdentitySyncFlow;
 import com.template.cordapp.common.flows.SignTxFlow;
 import com.template.cordapp.flows.AbstractAssetSettlementFlow;
 import com.template.cordapp.state.AssetTransfer;
@@ -29,7 +28,7 @@ import java.util.*;
 
 public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransaction> {
 
-    private final ProgressTracker progressTracker = new ProgressTracker();
+
    private final FlowSession otherSideSession;
 
    public AssetSettlementResponderFlow(FlowSession otherSideSession) {
@@ -37,13 +36,20 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
       this.otherSideSession = otherSideSession;
    }
 
-   public ProgressTracker getProgressTracker() {
-      return this.progressTracker;
-   }
+    private final ProgressTracker.Step ADD_CASH = new ProgressTracker.Step("Add cash states");
+
+    private final ProgressTracker.Step SYNC_IDENTITY = new ProgressTracker.Step("SYNC_IDENTITY");
+
+    private final ProgressTracker progressTracker = new ProgressTracker(
+            ADD_CASH,
+            SYNC_IDENTITY
+    );
 
    @Suspendable
    @Override
    public SignedTransaction call() throws FlowException {
+
+       progressTracker.setCurrentStep(ADD_CASH);
 
        SignedTransaction ptx = subFlow(new ReceiveTransactionFlow(otherSideSession, false, StatesToRecord.NONE));
 
@@ -100,9 +106,11 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
 
        //todo 8: check the below line
 
-       subFlow(new IdentitySyncFlowSend(Collections.singleton(this), ptx2.getTx()));
+       subFlow(new IdentitySyncFlow.send(Collections.singleton(this), ptx2.getTx()));
        subFlow((FlowLogic)(new SendTransactionFlow(this.otherSideSession, ptx2)));
-       subFlow((FlowLogic)(new IdentitySyncFlowReceive(this.otherSideSession)));
+
+       progressTracker.setCurrentStep(SYNC_IDENTITY);
+       subFlow((FlowLogic)(new IdentitySyncFlow.receive(this.otherSideSession)));
 
        SignedTransaction stx = subFlow(new SignTxFlow(this.otherSideSession));
 
