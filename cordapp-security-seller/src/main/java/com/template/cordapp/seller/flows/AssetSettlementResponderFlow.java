@@ -10,7 +10,7 @@ import com.template.cordapp.flows.FlowLogicCommonMethods;
 import com.template.cordapp.state.Asset;
 import com.template.cordapp.state.AssetTransfer;
 
-import com.template.cordapp.utils.UtilsKt;
+import com.template.cordapp.utils.Utils;
 import kotlin.collections.CollectionsKt;
 import net.corda.confidential.IdentitySyncFlow;
 import net.corda.core.contracts.*;
@@ -110,7 +110,7 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
          throw (new TooManyStatesFoundException("Transaction with more than one `AssetTransfer` " + "input states received from `" + this.otherSideSession.getCounterparty() + "` party"));
       }
 
-      StateAndRef assetStateAndRef = (StateAndRef) UtilsKt.getAssetByCusip(getServiceHub(),assetTransfer.getAsset().getCusip());
+      StateAndRef assetStateAndRef = (StateAndRef) Utils.getAssetByCusip(getServiceHub(),assetTransfer.getAsset().getCusip());
 
 
       //CommandAndState(cmd, assetOutState)commandAndState = (CommandAndState)assetStateAndRef.getState().getData().withNewOwner(assetTransfer.getSecurityBuyer());

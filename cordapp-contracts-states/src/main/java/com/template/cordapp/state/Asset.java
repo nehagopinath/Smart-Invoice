@@ -1,20 +1,24 @@
 package com.template.cordapp.state;
 
 import com.template.cordapp.contract.AssetContract;
+import com.template.cordapp.schema.AssetSchema;
+
+import java.util.List;
+import java.util.Set;
+
 import com.template.cordapp.schema.AssetSchemaV1;
 import kotlin.collections.CollectionsKt;
+import kotlin.collections.SetsKt;
 import kotlin.jvm.internal.Intrinsics;
+import net.corda.core.contracts.*;
+import net.corda.core.crypto.NullKeys;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.schemas.MappedSchema;
 import net.corda.core.schemas.PersistentState;
 import net.corda.core.schemas.QueryableState;
+import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
-
-import net.corda.core.contracts.Amount;
-import net.corda.core.contracts.CommandAndState;
-import net.corda.core.contracts.OwnableState;
-
-import java.util.*;
+import com.google.common.collect.ImmutableList;
 
 
 /**
@@ -35,6 +39,7 @@ public final class Asset implements OwnableState, QueryableState {
    @NotNull
    private final List<AbstractParty>  participants;
 
+   private AssetSchemaV1 assetSchemaV1;
 
    @NotNull
    @Override
@@ -42,12 +47,9 @@ public final class Asset implements OwnableState, QueryableState {
        return java.util.Collections.singletonList(this.owner);
    }
 
-
     @NotNull
-    @Override
     public Iterable<MappedSchema> supportedSchemas() {
-       return java.util.Collections.singleton(AssetSchemaV1.INSTANCE);
-
+        return ImmutableList.of(new AssetSchemaV1());
     }
 
     @NotNull

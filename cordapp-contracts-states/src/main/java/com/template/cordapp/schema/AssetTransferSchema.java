@@ -14,3 +14,4 @@ public final class AssetTransferSchema {
         INSTANCE = var0;
     }
 }
+

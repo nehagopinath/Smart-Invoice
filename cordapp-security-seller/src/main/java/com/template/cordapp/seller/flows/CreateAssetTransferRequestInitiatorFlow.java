@@ -4,6 +4,7 @@ import co.paralleluniverse.fibers.Suspendable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.template.cordapp.common.exception.InvalidPartyException;
+import com.template.cordapp.utils.Utils;
 import com.template.cordapp.contract.AssetTransferContract;
 import com.template.cordapp.flows.AbstractCreateAssetTransferRequestFlow;
 import com.template.cordapp.state.Asset;
@@ -11,8 +12,6 @@ import com.template.cordapp.state.AssetTransfer;
 import java.security.PublicKey;
 import java.time.Duration;
 import java.util.*;
-
-import com.template.cordapp.utils.UtilsKt;
 import kotlin.collections.CollectionsKt;
 import net.corda.confidential.SwapIdentitiesFlow;
 import net.corda.core.contracts.*;
@@ -23,8 +22,6 @@ import net.corda.core.node.ServiceHub;
 import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
-
-import javax.management.QueryExp;
 
 import static com.template.cordapp.state.RequestStatus.PENDING_CONFIRMATION;
 
@@ -89,7 +86,7 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
       Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
       if (getOurIdentity().getName() == securityBuyer.getName()) throw new InvalidPartyException("Flow initiating party should not equal to Lender of Cash party.");
-      //progressTracker.setCurrentStep(INITIALISING);
+      progressTracker.setCurrentStep(INITIALISING);
 
       //initialising
       LinkedHashMap txKeys = subFlow(new SwapIdentitiesFlow(securityBuyer));
@@ -110,25 +107,10 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
          throw new FlowException("Couldn't create lender's (securityBuyer) anonymous identity.");
       }
 
-      //Debugging - remove later
-      getLogger().info("=========== Cusip is : " + this.cusip);
-
-      ServiceHub receiver = getServiceHub();
-      if (receiver != null) {
-         getLogger().info("========== service hub is:  " + receiver.toString());
-
-         getLogger().info(String.valueOf(receiver.getMyInfo()));
-      }
-      else {
-         getLogger().info("FIXXXX : service hub is strangely null!! although this is supplied by corda when the applications starts");
-      }
-
-      Asset asset = (Asset) UtilsKt.getAssetByCusip(getServiceHub(), this.cusip).getState().getData();
-
+      ServiceHub receiver = this.getServiceHub() ;
+      System.out.println(receiver);
       // We create the transaction components.
-      //Asset asset = (Asset) Utils.getAssetByCusip(getServiceHub(), this.cusip).getState().getData();
-      //Debugging remove later
-      System.out.println(asset);
+      Asset asset = (Asset) Utils.getAssetByCusip(this.getServiceHub(), this.cusip).getState().getData();
 
       AssetTransfer assetTransfer = new AssetTransfer(asset, anonymousMe, anonymousCashLender, null, PENDING_CONFIRMATION,null,null);
 
