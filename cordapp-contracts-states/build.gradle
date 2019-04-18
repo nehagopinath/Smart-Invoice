@@ -15,6 +15,8 @@ tasks.withType(JavaCompile) {
 }
 
 dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+
     // Corda integration dependencies
     cordaCompile "$corda_release_group:corda-core:$corda_release_version"
     cordaCompile "$corda_release_group:corda-finance:$corda_release_version"

@@ -27,135 +27,134 @@ public final class AssetTransferSchemaV1 extends MappedSchema {
 
     public static final AssetTransferSchemaV1 INSTANCE;
 
-   public AssetTransferSchemaV1() {
-       super(AssetTransferSchema.INSTANCE.getClass(), 1, CollectionsKt.listOf(PersistentAssetTransfer.class));
-   }
+    public AssetTransferSchemaV1() {
+        super(AssetTransferSchema.INSTANCE.getClass(), 1, CollectionsKt.listOf(PersistentAssetTransfer.class));
+    }
 
     static {
         AssetTransferSchemaV1 var0 = new AssetTransferSchemaV1();
         INSTANCE = var0;
     }
 
-   @Entity
-   @Table(name = "asset_transfer",
-           indexes = {
-           @Index(columnList = "linear_id", name = "idx_asset_transfer_linearId"),
-                   @Index(columnList = "cusip", name = "idx_asset_transfer_cusip")
-   })
+    @Entity
+    @Table(name = "asset_transfer",
+            indexes = {
+                    @Index(columnList = "linear_id", name = "idx_asset_transfer_linearId"),
+                    @Index(columnList = "cusip", name = "idx_asset_transfer_cusip")
+            })
 
-   public static final class PersistentAssetTransfer extends PersistentState {
-      @Column(
-         name = "cusip"
-      )
-      @NotNull public String cusip;
+    public static final class PersistentAssetTransfer extends PersistentState {
+        @Column(
+                name = "cusip"
+        )
+        @NotNull public String cusip;
 
-      @Column(
-         name = "lender_of_security"
-      )
-      @NotNull public AbstractParty securitySeller;
+        @Column(
+                name = "lender_of_security"
+        )
+        @NotNull public AbstractParty securitySeller;
 
-      @Column(
-         name = "lender_of_cash"
-      )
-      @NotNull public AbstractParty securityBuyer;
+        @Column(
+                name = "lender_of_cash"
+        )
+        @NotNull public AbstractParty securityBuyer;
 
-      @Column(
-         name = "clearing_house"
-      )
-      @Nullable public AbstractParty clearingHouse;
+        @Column(
+                name = "clearing_house"
+        )
+        @Nullable public AbstractParty clearingHouse;
 
-      @Column(
-         name = "status"
-      )
-      @NotNull public String status;
+        @Column(
+                name = "status"
+        )
+        @NotNull public String status;
 
-      @ElementCollection
-      @Column(
-         name = "participants"
-      )
-      @CollectionTable(
-         name = "asset_transfer_participants",
-         joinColumns = {@JoinColumn(
-   referencedColumnName = "output_index",
-   name = "output_index"
-), @JoinColumn(
-   referencedColumnName = "transaction_id",
-   name = "transaction_id"
-)}
-      )
-      @Nullable
-      public Set<AbstractParty> participants;
-      @Column(
-         name = "linear_id"
-      )
+        @ElementCollection
+        @Column(
+                name = "participants"
+        )
+        @CollectionTable(
+                name = "asset_transfer_participants",
+                joinColumns = {@JoinColumn(
+                        referencedColumnName = "output_index",
+                        name = "output_index"
+                ), @JoinColumn(
+                        referencedColumnName = "transaction_id",
+                        name = "transaction_id"
+                )}
+        )
+        @Nullable
+        public Set<AbstractParty> participants;
+        @Column(
+                name = "linear_id"
+        )
 
-      @NotNull public String linearId;
+        @NotNull public String linearId;
 
-       @NotNull
-      public final String getCusip() {
-         return this.cusip;
-      }
+        @NotNull
+        public final String getCusip() {
+            return this.cusip;
+        }
 
-       @NotNull
-      public final AbstractParty getSecuritySeller() {
-         return this.securitySeller;
-      }
+        @NotNull
+        public final AbstractParty getSecuritySeller() {
+            return this.securitySeller;
+        }
 
-       @NotNull
-      public final AbstractParty getSecurityBuyer() {
-         return this.securityBuyer;
-      }
+        @NotNull
+        public final AbstractParty getSecurityBuyer() {
+            return this.securityBuyer;
+        }
 
-       @Nullable
-      public final AbstractParty getClearingHouse() {
-         return this.clearingHouse;
-      }
+        @Nullable
+        public final AbstractParty getClearingHouse() {
+            return this.clearingHouse;
+        }
 
-       @NotNull
-      public final String getStatus() {
-         return this.status;
-      }
+        @NotNull
+        public final String getStatus() {
+            return this.status;
+        }
 
-      @Nullable
-      public final Set<AbstractParty> getParticipants() {
-         return this.participants;
-      }
+        @Nullable
+        public final Set<AbstractParty> getParticipants() {
+            return this.participants;
+        }
 
 
-      public final void setParticipants(@Nullable Set<AbstractParty> participants) {
-           this.participants = participants;
-       }
+        public final void setParticipants(@Nullable Set<AbstractParty> participants) {
+            this.participants = participants;
+        }
 
-       @NotNull public final String getLinearId() {
-         return this.linearId;
-      }
+        @NotNull public final String getLinearId() {
+            return this.linearId;
+        }
 
-      public PersistentAssetTransfer(@NotNull String cusip, @NotNull AbstractParty securitySeller, @NotNull AbstractParty securityBuyer, @Nullable AbstractParty clearingHouse, @NotNull String status, @Nullable Set<AbstractParty> participants, @NotNull String linearId) {
+        public PersistentAssetTransfer(@NotNull String cusip, @NotNull AbstractParty securitySeller, @NotNull AbstractParty securityBuyer, @Nullable AbstractParty clearingHouse, @NotNull String status, @Nullable Set<AbstractParty> participants, @NotNull String linearId) {
 
-          super(null);
-          Intrinsics.checkParameterIsNotNull(cusip, "cusip");
-          Intrinsics.checkParameterIsNotNull(securitySeller, "securitySeller");
-          Intrinsics.checkParameterIsNotNull(securityBuyer, "securityBuyer");
-          Intrinsics.checkParameterIsNotNull(status, "status");
-          Intrinsics.checkParameterIsNotNull(linearId, "linearId");
-          this.cusip = cusip;
-          this.securitySeller = securitySeller;
-          this.securityBuyer = securityBuyer;
-          this.clearingHouse = clearingHouse;
-          this.status = status;
-          this.participants = participants;
-          this.linearId = linearId;
-      }
+            super(null);
+            Intrinsics.checkParameterIsNotNull(cusip, "cusip");
+            Intrinsics.checkParameterIsNotNull(securitySeller, "securitySeller");
+            Intrinsics.checkParameterIsNotNull(securityBuyer, "securityBuyer");
+            Intrinsics.checkParameterIsNotNull(status, "status");
+            Intrinsics.checkParameterIsNotNull(linearId, "linearId");
+            this.cusip = cusip;
+            this.securitySeller = securitySeller;
+            this.securityBuyer = securityBuyer;
+            this.clearingHouse = clearingHouse;
+            this.status = status;
+            this.participants = participants;
+            this.linearId = linearId;
+        }
 
-       public PersistentAssetTransfer(){
-           this.cusip = "default-constructor-required-for-hibernate";
-           this.securitySeller = NullKeys.INSTANCE.getNULL_PARTY();
-           this.securityBuyer = NullKeys.INSTANCE.getNULL_PARTY();
-           this.clearingHouse = NullKeys.INSTANCE.getNULL_PARTY();
-           this.status = "";
-           this.participants = (Set)(new LinkedHashSet());
-           this.linearId = "";
-       }
-   }
+        public PersistentAssetTransfer(){
+            this.cusip = "default-constructor-required-for-hibernate";
+            this.securitySeller = NullKeys.INSTANCE.getNULL_PARTY();
+            this.securityBuyer = NullKeys.INSTANCE.getNULL_PARTY();
+            this.clearingHouse = NullKeys.INSTANCE.getNULL_PARTY();
+            this.status = "";
+            this.participants = (Set)(new LinkedHashSet());
+            this.linearId = "";
+        }
+    }
 }
-

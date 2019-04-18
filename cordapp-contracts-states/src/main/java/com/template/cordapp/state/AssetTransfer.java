@@ -1,15 +1,12 @@
 package com.template.cordapp.state;
 
 import com.google.common.collect.ImmutableList;
-import com.template.cordapp.schema.AssetSchemaV1;
-import com.template.cordapp.schema.AssetTransferSchemaV1;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
+import com.template.cordapp.schema.AssetTransferSchemaV1;
 import kotlin.collections.CollectionsKt;
-import kotlin.collections.SetsKt;
 import kotlin.jvm.internal.Intrinsics;
 import net.corda.core.contracts.LinearState;
 import net.corda.core.contracts.UniqueIdentifier;
@@ -41,31 +38,32 @@ public final class AssetTransfer implements LinearState, QueryableState {
    @NotNull
    private final UniqueIdentifier linearId;
 
-   private AssetTransfer assetTransferSchemaV1;
 
    public AssetTransfer(@NotNull Asset asset, @NotNull AbstractParty securitySeller, @NotNull AbstractParty securityBuyer, @Nullable AbstractParty clearingHouse, @NotNull RequestStatus status, @NotNull List<AbstractParty>  participants, @NotNull UniqueIdentifier linearId) {
 
       super();
-      Intrinsics.checkParameterIsNotNull(asset, "asset");
-      Intrinsics.checkParameterIsNotNull(securitySeller, "securitySeller");
-      Intrinsics.checkParameterIsNotNull(securityBuyer, "securityBuyer");
-      Intrinsics.checkParameterIsNotNull(status, "status");
-      Intrinsics.checkParameterIsNotNull(participants, "participants");
-      Intrinsics.checkParameterIsNotNull(linearId, "linearId");
+
       this.asset = asset;
       this.securitySeller = securitySeller;
       this.securityBuyer = securityBuyer;
       this.clearingHouse = clearingHouse;
       this.status = status;
-      this.participants = participants;
-      this.linearId = linearId;
+      this.participants = Arrays.asList(securityBuyer, securitySeller);
+      this.linearId = new UniqueIdentifier();
    }
 
     @NotNull
    public PersistentState generateMappedObject(@NotNull MappedSchema schema) {
       Intrinsics.checkParameterIsNotNull(schema, "schema");
       if (schema instanceof com.template.cordapp.schema.AssetTransferSchemaV1) {
-         return (new AssetTransferSchemaV1.PersistentAssetTransfer(this.asset.getCusip(), this.securitySeller, this.securityBuyer, this.clearingHouse, this.status.getValue(), CollectionsKt.toMutableSet((Iterable)this.getParticipants()), this.getLinearId().toString()));
+         return (new AssetTransferSchemaV1.PersistentAssetTransfer(
+                 this.asset.getCusip(),
+                 this.securitySeller,
+                 this.securityBuyer,
+                 this.clearingHouse,
+                 this.status.getValue(),
+                 CollectionsKt.toMutableSet((Iterable)this.getParticipants()),
+                 this.getLinearId().toString()));
       } else {
          throw (new IllegalArgumentException("Unrecognised schema " + schema));
       }
@@ -73,7 +71,7 @@ public final class AssetTransfer implements LinearState, QueryableState {
 
    @NotNull
    public Iterable<MappedSchema> supportedSchemas() {
-      return ImmutableList.of(new AssetTransferSchemaV1());
+      return ImmutableList.of(AssetTransferSchemaV1.INSTANCE);
    }
 
 
