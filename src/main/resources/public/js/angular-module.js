@@ -1,29 +1,29 @@
 "use strict";
 
-const app = angular.module('demoAppModule', ['ui.bootstrap']);
+const app = angular.module('idpModule', ['ui.bootstrap']);
 
 // Fix for unhandled rejections bug.
 app.config(['$qProvider', function ($qProvider) {
     $qProvider.errorOnUnhandledRejections(false);
 }]);
 
-app.controller('DemoAppController', function($http, $location, $uibModal) {
-    const demoApp = this;
+app.controller('IdpController', function($http, $location, $uibModal) {
+    const idpApp = this;
 
     const apiBaseURL = "/api/example/";
     let peers = [];
 
-    $http.get(apiBaseURL + "me").then((response) => demoApp.thisNode = response.data.me);
+    $http.get(apiBaseURL + "me").then((response) => idpApp.thisNode = response.data.me);
 
     $http.get(apiBaseURL + "peers").then((response) => peers = response.data.peers);
 
-    demoApp.openModal = () => {
+    idpApp.openModal = () => {
         const modalInstance = $uibModal.open({
-            templateUrl: 'demoAppModal.html',
+            templateUrl: 'idpAppModal.html',
             controller: 'ModalInstanceCtrl',
             controllerAs: 'modalInstance',
             resolve: {
-                demoApp: () => demoApp,
+                idpApp: () => idpApp,
                 apiBaseURL: () => apiBaseURL,
                 peers: () => peers
             }
@@ -32,21 +32,21 @@ app.controller('DemoAppController', function($http, $location, $uibModal) {
         modalInstance.result.then(() => {}, () => {});
     };
 
-    demoApp.getIOUs = () => $http.get(apiBaseURL + "ious")
-        .then((response) => demoApp.ious = Object.keys(response.data)
+    idpApp.getIOUs = () => $http.get(apiBaseURL + "ious")
+        .then((response) => idpApp.ious = Object.keys(response.data)
             .map((key) => response.data[key].state.data)
             .reverse());
 
-    demoApp.getMyIOUs = () => $http.get(apiBaseURL + "my-ious")
-        .then((response) => demoApp.myious = Object.keys(response.data)
+    idpApp.getMyIOUs = () => $http.get(apiBaseURL + "my-ious")
+        .then((response) => idpApp.myious = Object.keys(response.data)
             .map((key) => response.data[key].state.data)
             .reverse());
 
-    demoApp.getIOUs();
-    demoApp.getMyIOUs();
+    idpApp.getIOUs();
+    idpApp.getMyIOUs();
 });
 
-app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstance, $uibModal, demoApp, apiBaseURL, peers) {
+app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstance, $uibModal, idpApp, apiBaseURL, peers) {
     const modalInstance = this;
 
     modalInstance.peers = peers;
