@@ -20,10 +20,15 @@ public class ConfirmAssetTransferRequestHandlerFlow extends FlowLogic<SignedTran
       this.otherSideSession = otherPartySession;
    }
    @Suspendable
+   @Override
    public SignedTransaction call() throws FlowException {
       this.subFlow((new IdentitySyncFlow.Receive(this.otherSideSession)));
+      getLogger().info("========= Responder flow Seller : othersideSession");
+      getLogger().info(this.otherSideSession.toString());
 
       SignedTransaction stx = (SignedTransaction)this.subFlow((FlowLogic)(new SignTxFlow(this.otherSideSession)));
+      getLogger().info("========= Responder flow Seller : signed tx");
+      getLogger().info(stx.toString());
 
       return waitForLedgerCommit(stx.getId());
    }
