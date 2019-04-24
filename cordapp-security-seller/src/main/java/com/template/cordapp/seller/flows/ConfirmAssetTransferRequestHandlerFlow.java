@@ -7,48 +7,36 @@ import net.corda.confidential.IdentitySyncFlow;
 import net.corda.core.flows.*;
 import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.utilities.ProgressTracker;
+import org.jetbrains.annotations.NotNull;
 
 @InitiatedBy(AbstractConfirmAssetTransferRequestFlow.class)
 
 public class ConfirmAssetTransferRequestHandlerFlow extends FlowLogic<SignedTransaction> {
+
    private final FlowSession otherSideSession;
 
-
-
-   private final ProgressTracker.Step COLLECTING = new ProgressTracker.Step("Sync identities with counter parties") {
-         @Override
-         public ProgressTracker childProgressTracker() {
-            return SignTransactionFlow.Companion.tracker();
-         }
-   };
-
-
-   /**
-    * The progress tracker provides checkpoints indicating the progress of the flow to observers.
-    */
-
-   private final ProgressTracker progressTracker = new ProgressTracker(
-           COLLECTING
-   );
-
-   @Override
-   public ProgressTracker getProgressTracker() {
-      return progressTracker;
-   }
 
    public ConfirmAssetTransferRequestHandlerFlow(FlowSession otherPartySession)
    {
       this.otherSideSession = otherPartySession;
    }
    @Suspendable
+   @Override
    public SignedTransaction call() throws FlowException {
 
-      progressTracker.setCurrentStep(COLLECTING);
+      class SignTxFlow extends SignTransactionFlow {
+         private SignTxFlow(FlowSession otherPartySession, ProgressTracker progressTracker) {
+            super(otherPartySession, progressTracker);
+         }
 
-      this.subFlow((new IdentitySyncFlow.Receive(this.otherSideSession)));
+         @Override
+         protected void checkTransaction(@NotNull SignedTransaction stx) throws FlowException {
 
-      SignedTransaction stx = subFlow(new SignTxFlow(this.otherSideSession));
+         }
+      }
 
+      subFlow((new IdentitySyncFlow.Receive(this.otherSideSession)));
+      SignedTransaction stx = subFlow(new SignTxFlow(otherSideSession,SignTransactionFlow.Companion.tracker()));
       return waitForLedgerCommit(stx.getId());
    }
 }

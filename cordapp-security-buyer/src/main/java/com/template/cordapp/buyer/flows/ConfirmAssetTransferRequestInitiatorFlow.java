@@ -143,9 +143,9 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
         getLogger().info(this.resolveIdentity(this.getServiceHub(),assetTransfer.getSecurityBuyer()).getName().toString());
 
 
-        if (this.getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), assetTransfer.getSecurityBuyer()).getName()) {
+       /* if (this.getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), assetTransfer.getSecurityBuyer()).getName()) {
             throw new InvalidPartyException("Flow must be initiated by Lender Of Cash.");
-        }
+        } */
 
         progressTracker.setCurrentStep(BUILDING);
 
@@ -156,7 +156,7 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
         getLogger().info(assetTransfer.getSecuritySeller().getOwningKey().toString());
 
         List<PublicKey> requiredSigners = Arrays.asList(
-                assetTransfer.getSecurityBuyer().getOwningKey(),
+                getOurIdentity().getOwningKey(),
                 clearingHouse.getOwningKey(),
                 assetTransfer.getSecuritySeller().getOwningKey());
 
@@ -174,7 +174,7 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
 
         // Signing the transaction.
         progressTracker.setCurrentStep(SIGNING);
-        SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder, ourSigningKey);
+        SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
 
         Iterable participants_iterable = participants;
         Collection otherSideSession = new ArrayList(CollectionsKt.collectionSizeOrDefault(participants_iterable, 10));
@@ -218,6 +218,8 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
 
         Set<FlowSession> otherPartySession = CollectionsKt.toSet(otherSideSession);
 
+        getLogger().info(otherPartySession.toString());
+
         progressTracker.setCurrentStep(IDENTITY_SYNC);
 
         this.subFlow(new IdentitySyncFlow.Send(
@@ -232,13 +234,12 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
                 new CollectSignaturesFlow(
                         signedTx,
                         otherPartySession,
-                        CollectionsKt.listOf(assetTransfer.getSecurityBuyer().getOwningKey()),
-                        COLLECTING.childProgressTracker()));
+                        CollectSignaturesFlow.tracker()));
 
 
         // Finalising the transaction.
         progressTracker.setCurrentStep(FINALISING);
-        return subFlow(new FinalityFlow(fullySignedTx));
+        return subFlow(new FinalityFlow(fullySignedTx,FINALISING.childProgressTracker()));
 
 
     }

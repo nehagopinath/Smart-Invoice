@@ -4,31 +4,42 @@ import co.paralleluniverse.fibers.Suspendable;
 import com.template.cordapp.common.flows.SignTxFlow;
 import com.template.cordapp.flows.AbstractConfirmAssetTransferRequestFlow;
 import net.corda.confidential.IdentitySyncFlow;
-import net.corda.core.flows.FlowException;
-import net.corda.core.flows.FlowLogic;
-import net.corda.core.flows.FlowSession;
-import net.corda.core.flows.InitiatedBy;
+import net.corda.core.flows.*;
 import net.corda.core.transactions.SignedTransaction;
+import net.corda.core.utilities.ProgressTracker;
+import org.jetbrains.annotations.NotNull;
 
 
 @InitiatedBy(AbstractConfirmAssetTransferRequestFlow.class)
 
-public final class ConfirmAssetTransferRequestResponderFlow extends FlowLogic<SignedTransaction> {
+public class ConfirmAssetTransferRequestResponderFlow extends FlowLogic<SignedTransaction> {
    private final FlowSession otherSideSession;
-
-   @Suspendable
-   public SignedTransaction call() throws FlowException {
-      this.subFlow((new IdentitySyncFlow.Receive(this.otherSideSession)));
-      //TODO fix this with adding progress trackers
-      SignedTransaction stx = this.subFlow((new SignTxFlow(this.otherSideSession)));
-      return waitForLedgerCommit(stx.getId());
-   }
 
    public ConfirmAssetTransferRequestResponderFlow(FlowSession otherSideSession) {
 
-      //todo 2: does it need super ?
-      super();
       this.otherSideSession = otherSideSession;
    }
+
+   @Suspendable
+   @Override
+   public SignedTransaction call() throws FlowException
+   {
+      class SignTxFlow extends SignTransactionFlow {
+
+         private SignTxFlow(FlowSession otherPartySession, ProgressTracker progressTracker) {
+            super(otherPartySession, progressTracker);
+         }
+
+         @Override
+         protected void checkTransaction(@NotNull SignedTransaction stx) throws FlowException {
+
+         }
+
+      }
+      subFlow((new IdentitySyncFlow.Receive(otherSideSession)));
+      SignedTransaction stx = subFlow((new SignTxFlow(otherSideSession, SignTransactionFlow.Companion.tracker())));
+      return waitForLedgerCommit(stx.getId());
+   }
+
 }
 
