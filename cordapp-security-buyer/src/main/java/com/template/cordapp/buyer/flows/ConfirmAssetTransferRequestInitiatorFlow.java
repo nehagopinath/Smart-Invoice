@@ -41,11 +41,6 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
     private final UniqueIdentifier linearId;
     private final Party clearingHouse;
 
-    public ConfirmAssetTransferRequestInitiatorFlow(UniqueIdentifier linearId, Party clearingHouse) {
-        this.linearId = linearId;
-        this.clearingHouse = clearingHouse;
-    }
-
     private final ProgressTracker.Step SWAP_IDENTITY = new ProgressTracker.Step("Swap Identity");
     private final ProgressTracker.Step INITIALISING = new ProgressTracker.Step("Performing initial steps");
     private final ProgressTracker.Step BUILDING = new ProgressTracker.Step("Building and verifying transaction");
@@ -53,7 +48,7 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
     private final ProgressTracker.Step IDENTITY_SYNC = new ProgressTracker.Step("Sync identities with counter parties") {
         @Override
         public ProgressTracker childProgressTracker() {
-            return IdentitySyncFlow.send.Companion.tracker();
+            return IdentitySyncFlow.Send.Companion.tracker();
         }
 
     };
@@ -81,6 +76,16 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
             FINALISING
     );
 
+    @Override
+    public ProgressTracker getProgressTracker() {
+        return progressTracker;
+    }
+
+    public ConfirmAssetTransferRequestInitiatorFlow(UniqueIdentifier linearId, Party clearingHouse) {
+        this.linearId = linearId;
+        this.clearingHouse = clearingHouse;
+    }
+
     /**
      * The flow logic is encapsulated within the call() method.
      */
@@ -105,41 +110,65 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
             throw new FlowException("Couldn't create clearing house anonymous identity.");
         }
 
-        progressTracker.setCurrentStep(INITIALISING);
-
         AnonymousParty anonymousMe = (AnonymousParty) txKeys.get(this.getOurIdentity());
 
-        StateAndRef input = this.loadState(this.getServiceHub(), this.linearId, AssetTransfer.class);
+        progressTracker.setCurrentStep(INITIALISING);
 
-        Collection participants1 = (Collection) ((AssetTransfer) input.getState().getData()).getParticipants();
+        StateAndRef<AssetTransfer> input = this.loadState(this.getServiceHub(), this.linearId, AssetTransfer.class);
+
+        Collection participants1 = input.getState().getData().getParticipants();
         Intrinsics.checkExpressionValueIsNotNull(anonymousCustodian, "anonymousCustodian");
         List participants = CollectionsKt.plus(participants1, anonymousCustodian);
 
-        Asset asset = (Asset) input.getState().getData();
-        AssetTransfer assetTransfer = (AssetTransfer) input.getState().getData();
-        AbstractParty abstractParty = (AbstractParty) anonymousCustodian;
-        TransactionBuilder txb = null;
-        RequestStatus requestStatus = PENDING;
+        Asset asset = input.getState().getData().getAsset();
+        AbstractParty securitySeller = input.getState().getData().getSecuritySeller();
 
-        AssetTransfer output = new AssetTransfer(asset, null, anonymousMe, anonymousCustodian, PENDING, participants, linearId);
 
-        if (getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), output.getSecurityBuyer()).getName()) {
+        AssetTransfer assetTransfer = input.getState().getData().copy(
+                asset,
+                securitySeller,
+                anonymousMe,
+                anonymousCustodian,
+                PENDING,
+                participants,
+                linearId);
+
+        getLogger().info("====Participants");
+        getLogger().info(participants.toString());
+
+        getLogger().info("====our Identity");
+        getLogger().info(getOurIdentity().getName().toString());
+
+        getLogger().info("====oBuyer identity - should be same ");
+        getLogger().info(this.resolveIdentity(this.getServiceHub(),assetTransfer.getSecurityBuyer()).getName().toString());
+
+
+        if (getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), assetTransfer.getSecurityBuyer()).getName()) {
             throw new InvalidPartyException("Flow must be initiated by Lender Of Cash.");
         }
 
+        progressTracker.setCurrentStep(BUILDING);
 
-        PublicKey ourSigningKey = output.getSecurityBuyer().getOwningKey();
+        PublicKey ourSigningKey = assetTransfer.getSecurityBuyer().getOwningKey();
+
+        getLogger().info(assetTransfer.getSecurityBuyer().getOwningKey().toString());
+        getLogger().info(clearingHouse.getOwningKey().toString());
+        getLogger().info(assetTransfer.getSecuritySeller().getOwningKey().toString());
+
+        List<PublicKey> requiredSigners = Arrays.asList(
+                assetTransfer.getSecurityBuyer().getOwningKey(),
+                clearingHouse.getOwningKey(),
+                assetTransfer.getSecuritySeller().getOwningKey());
+
+        getLogger().info(requiredSigners.toString());
 
         final Command<AssetTransferContract.Commands.ConfirmRequest> command = new Command(
-                new AssetTransferContract.Commands.ConfirmRequest(),
-                ImmutableList.of(assetTransfer.getParticipants()));
-
-        progressTracker.setCurrentStep(BUILDING);
+                new AssetTransferContract.Commands.ConfirmRequest(),requiredSigners);
 
         // We create a transaction builder and add the components.
         TransactionBuilder txBuilder = new TransactionBuilder(notary)
                 .addInputState(input)
-                .addOutputState(output, AssetTransferContract.ASSET_CONTRACT_ID)
+                .addOutputState(assetTransfer, AssetTransferContract.ASSET_TRANSFER_CONTRACT_ID)
                 .addCommand(command)
                 .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(60));
 
@@ -147,58 +176,66 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
         progressTracker.setCurrentStep(SIGNING);
         SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder, ourSigningKey);
 
-        Iterable $receiver$iv = (Iterable)participants;
-        Collection destination$iv$iv = (Collection)(new ArrayList(CollectionsKt.collectionSizeOrDefault($receiver$iv, 10)));
-        Iterator var31 = $receiver$iv.iterator();
+        Iterable participants_iterable = participants;
+        Collection otherSideSession = new ArrayList(CollectionsKt.collectionSizeOrDefault(participants_iterable, 10));
+        Iterator participant = participants_iterable.iterator();
 
-        boolean var15;
-        Object item$iv$iv;
-        while(var31.hasNext()) {
-            item$iv$iv = var31.next();
-            AbstractParty it = (AbstractParty)item$iv$iv;
-            var15 = false;
-            Party var38 = this.resolveIdentity(this.getServiceHub(), it);
-            destination$iv$iv.add(var38);
+        boolean value;
+        Object nextItem;
+        while(participant.hasNext()) {
+            nextItem = participant.next();
+            AbstractParty it = (AbstractParty)nextItem;
+            value = false;
+            Party party = this.resolveIdentity(this.getServiceHub(), it);
+            otherSideSession.add(party);
         }
 
-        $receiver$iv = (Iterable)((List)destination$iv$iv);
-        destination$iv$iv = (Collection)(new ArrayList());
-        var31 = $receiver$iv.iterator();
+        participants_iterable = otherSideSession;
+        otherSideSession = new ArrayList();
+        participant = participants_iterable.iterator();
 
         Party it;
-        while(var31.hasNext()) {
-            item$iv$iv = var31.next();
-            it = (Party)item$iv$iv;
-            var15 = false;
+        while(participant.hasNext()) {
+            nextItem = participant.next();
+            it = (Party)nextItem;
+            value = false;
             if (Intrinsics.areEqual(it.getName(), this.getOurIdentity().getName()) ^ true) {
-                destination$iv$iv.add(item$iv$iv);
+                otherSideSession.add(nextItem);
             }
         }
 
-        $receiver$iv = (Iterable)((List)destination$iv$iv);
-        destination$iv$iv = (Collection)(new ArrayList(CollectionsKt.collectionSizeOrDefault($receiver$iv, 10)));
-        var31 = $receiver$iv.iterator();
+        participants_iterable = otherSideSession;
+        otherSideSession = new ArrayList(CollectionsKt.collectionSizeOrDefault(participants_iterable, 10));
+        participant = participants_iterable.iterator();
 
-        while(var31.hasNext()) {
-            item$iv$iv = var31.next();
-            it = (Party)item$iv$iv;
-            var15 = false;
-            FlowSession var39 = this.initiateFlow(it);
-            destination$iv$iv.add(var39);
+        while(participant.hasNext()) {
+            nextItem = participant.next();
+            it = (Party)nextItem;
+            value = false;
+            FlowSession flowSession = this.initiateFlow(it);
+            otherSideSession.add(flowSession);
         }
 
-        Set<AbstractParty> otherPartySession = CollectionsKt.toSet(destination$iv$iv);
+        Set<FlowSession> otherPartySession = CollectionsKt.toSet(otherSideSession);
 
         progressTracker.setCurrentStep(IDENTITY_SYNC);
 
-        this.subFlow(new IdentitySyncFlow.send(otherPartySession,
+        this.subFlow(new IdentitySyncFlow.Send(
+                otherPartySession,
                 txBuilder.toWireTransaction(getServiceHub()),
                 IDENTITY_SYNC.childProgressTracker()));
 
         // Obtaining the counter-party's signature.
         progressTracker.setCurrentStep(COLLECTING);
+
         final SignedTransaction fullySignedTx = subFlow(
-                new CollectSignaturesFlow(signedTx, (Collection)otherPartySession, CollectionsKt.listOf(ourSigningKey), CollectSignaturesFlow.Companion.tracker()));
+                new CollectSignaturesFlow(
+                        signedTx,
+                        otherPartySession,
+                        CollectionsKt.listOf(assetTransfer.getSecurityBuyer().getOwningKey()),
+                        COLLECTING.childProgressTracker()));
+
+
 
         // Finalising the transaction.
         progressTracker.setCurrentStep(FINALISING);

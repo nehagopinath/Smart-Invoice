@@ -106,11 +106,11 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
 
        //todo 8: check the below line
 
-       subFlow(new IdentitySyncFlow.send(Collections.singleton(this), ptx2.getTx()));
+       subFlow(new IdentitySyncFlow.Send(this.otherSideSession, ptx2.getTx()));
        subFlow((FlowLogic)(new SendTransactionFlow(this.otherSideSession, ptx2)));
 
        progressTracker.setCurrentStep(SYNC_IDENTITY);
-       subFlow((FlowLogic)(new IdentitySyncFlow.receive(this.otherSideSession)));
+       subFlow((FlowLogic)(new IdentitySyncFlow.Receive(this.otherSideSession)));
 
        SignedTransaction stx = subFlow(new SignTxFlow(this.otherSideSession));
 
