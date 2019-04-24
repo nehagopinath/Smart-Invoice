@@ -32,18 +32,18 @@ app.controller('IdpController', function($http, $location, $uibModal) {
         modalInstance.result.then(() => {}, () => {});
     };
 
-    idpApp.getIOUs = () => $http.get(apiBaseURL + "ious")
-        .then((response) => idpApp.ious = Object.keys(response.data)
+    idpApp.getTransactions = () => $http.get(apiBaseURL + "transactions")
+        .then((response) => idpApp.transactions = Object.keys(response.data)
             .map((key) => response.data[key].state.data)
             .reverse());
 
-    idpApp.getMyIOUs = () => $http.get(apiBaseURL + "my-ious")
-        .then((response) => idpApp.myious = Object.keys(response.data)
+    idpApp.getMyTransactions = () => $http.get(apiBaseURL + "my-transactions")
+        .then((response) => idpApp.my-transactions = Object.keys(response.data)
             .map((key) => response.data[key].state.data)
             .reverse());
 
-    idpApp.getIOUs();
-    idpApp.getMyIOUs();
+    idpApp.getTransactions();
+    idpApp.getMyTransactions();
 });
 
 app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstance, $uibModal, idpApp, apiBaseURL, peers) {
@@ -54,29 +54,30 @@ app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstanc
     modalInstance.formError = false;
 
         // Validates and sends IOU.
-        modalInstance.create = function validateAndSendIOU() {
+        modalInstance.create = function validateAndSendTransaction() {
             if (modalInstance.form.value <= 0) {
                 modalInstance.formError = true;
             } else {
                 modalInstance.formError = false;
                 $uibModalInstance.close();
 
-                let CREATE_IOUS_PATH = apiBaseURL + "create-iou"
+                let CREATE_TRANSACTIONS_PATH = apiBaseURL + "create-transaction"
 
-                let createIOUData = $.param({
-                    partyName: modalInstance.form.counterparty,
-                    iouValue : modalInstance.form.value
+                let createTransactionData = $.param({
+                    cusip: modalInstance.form.cusip,
+                    transactionAssetName : modalInstance.form.assetName,
+                    transactionPurchaseCost : modalInstance.form.purchaseCost
 
                 });
 
-                let createIOUHeaders = {
+                let createTransactionHeaders = {
                     headers : {
                         "Content-Type": "application/x-www-form-urlencoded"
                     }
                 };
 
-                // Create IOU  and handles success / fail responses.
-                $http.post(CREATE_IOUS_PATH, createIOUData, createIOUHeaders).then(
+                // Create Transaction and handles success / fail responses.
+                $http.post(CREATE_TRANSACTIONS_PATH, createTransactionData, createTransactionHeaders).then(
                     modalInstance.displayMessage,
                     modalInstance.displayMessage
                 );
@@ -95,12 +96,12 @@ app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstanc
         modalInstanceTwo.result.then(() => {}, () => {});
     };
 
-    // Close create IOU modal dialogue.
+    // Close create Transaction modal dialogue.
     modalInstance.cancel = () => $uibModalInstance.dismiss();
 
-    // Validate the IOU.
+    // Validate the Transaction. ToDo See buyer stuff
     function invalidFormInput() {
-        return isNaN(modalInstance.form.value) || (modalInstance.form.counterparty === undefined);
+        return isNaN(modalInstance.form.value) || (modalInstance.form.cusip === undefined);
     }
 });
 
