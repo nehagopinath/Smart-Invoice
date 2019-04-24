@@ -4,7 +4,6 @@ import co.paralleluniverse.fibers.Suspendable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.template.cordapp.common.exception.InvalidPartyException;
-import com.template.cordapp.utils.Utils;
 import com.template.cordapp.contract.AssetTransferContract;
 import com.template.cordapp.flows.AbstractCreateAssetTransferRequestFlow;
 import com.template.cordapp.state.Asset;
@@ -12,6 +11,8 @@ import com.template.cordapp.state.AssetTransfer;
 import java.security.PublicKey;
 import java.time.Duration;
 import java.util.*;
+
+import com.template.cordapp.utils.UtilsKt;
 import kotlin.collections.CollectionsKt;
 import net.corda.confidential.SwapIdentitiesFlow;
 import net.corda.core.contracts.*;
@@ -22,6 +23,8 @@ import net.corda.core.node.ServiceHub;
 import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
+
+
 
 import static com.template.cordapp.state.RequestStatus.PENDING_CONFIRMATION;
 
@@ -86,7 +89,7 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
       Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
       if (getOurIdentity().getName() == securityBuyer.getName()) throw new InvalidPartyException("Flow initiating party should not equal to Lender of Cash party.");
-      progressTracker.setCurrentStep(INITIALISING);
+      //progressTracker.setCurrentStep(INITIALISING);
 
       //initialising
       LinkedHashMap txKeys = subFlow(new SwapIdentitiesFlow(securityBuyer));
@@ -107,23 +110,26 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
          throw new FlowException("Couldn't create lender's (securityBuyer) anonymous identity.");
       }
 
-      ServiceHub receiver = this.getServiceHub() ;
-      System.out.println(receiver);
-      // We create the transaction components.
-      Asset asset = (Asset) Utils.getAssetByCusip(this.getServiceHub(), this.cusip).getState().getData();
+      Asset asset = (Asset) UtilsKt.getAssetByCusip(getServiceHub(), this.cusip).getState().getData();
 
-      AssetTransfer assetTransfer = new AssetTransfer(asset, anonymousMe, anonymousCashLender, null, PENDING_CONFIRMATION,null,null);
+      Collection participants1 = Collections.singleton(anonymousMe);
+
+      List participants = CollectionsKt.plus(participants1, anonymousCashLender);
+
+    //  UniqueIdentifier linearid = new UniqueIdentifier(cusip, UUID.randomUUID());
+
+      AssetTransfer assetTransfer = new AssetTransfer(asset, anonymousMe, anonymousCashLender, null, PENDING_CONFIRMATION,participants,new UniqueIdentifier());
 
       PublicKey ourSigningKey = assetTransfer.getSecuritySeller().getOwningKey();
 
       final Command<AssetTransferContract.Commands.CreateRequest> command = new Command(
               new AssetTransferContract.Commands.CreateRequest(),
-              ImmutableList.of(assetTransfer.getParticipants()));
+              ImmutableList.of(assetTransfer.getSecuritySeller().getOwningKey()));
 
       progressTracker.setCurrentStep(BUILDING);
       // We create a transaction builder and add the components.
       TransactionBuilder txBuilder = new TransactionBuilder(notary)
-              .addOutputState(assetTransfer, AssetTransferContract.ASSET_CONTRACT_ID)
+              .addOutputState(assetTransfer, AssetTransferContract.ASSET_TRANSFER_CONTRACT_ID)
               .addCommand(command)
               .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(30));
 
@@ -137,7 +143,7 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
       // Obtaining the counter-party's signature.
       progressTracker.setCurrentStep(COLLECTING);
       final SignedTransaction fullySignedTx = subFlow(
-              new CollectSignaturesFlow(signedTx, ImmutableSet.of(otherPartySession), CollectionsKt.listOf(ourSigningKey),CollectSignaturesFlow.Companion.tracker()));
+              new CollectSignaturesFlow(signedTx, ImmutableSet.of(otherPartySession),CollectSignaturesFlow.Companion.tracker()));
 
       progressTracker.setCurrentStep(FINALISING);
       // Finalising the transaction.

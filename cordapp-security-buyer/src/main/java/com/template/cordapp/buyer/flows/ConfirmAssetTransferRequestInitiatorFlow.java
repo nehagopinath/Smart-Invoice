@@ -139,7 +139,7 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
         // We create a transaction builder and add the components.
         TransactionBuilder txBuilder = new TransactionBuilder(notary)
                 .addInputState(input)
-                .addOutputState(output, AssetTransferContract.ASSET_CONTRACT_ID)
+                .addOutputState(output, AssetTransferContract.ASSET_TRANSFER_CONTRACT_ID)
                 .addCommand(command)
                 .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(60));
 

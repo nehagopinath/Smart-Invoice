@@ -8,14 +8,15 @@ import com.template.cordapp.common.flows.IdentitySyncFlow;
 import com.template.cordapp.common.flows.ReceiveTransactionUnVerifiedFlow;
 import com.template.cordapp.contract.AssetTransferContract;
 import com.template.cordapp.flows.AbstractAssetSettlementFlow;
-import com.template.cordapp.state.Asset;
-import com.template.cordapp.state.AssetTransfer;
 
 import java.security.SignatureException;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 
+import com.template.cordapp.state.Asset;
+
+import com.template.cordapp.state.AssetTransfer;
 import kotlin.collections.CollectionsKt;
 import net.corda.confidential.IdentitySyncFlow.Receive;
 import net.corda.core.contracts.Command;
@@ -125,7 +126,7 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
         progressTracker.setCurrentStep(BUILDING);
         TransactionBuilder txBuilder = new TransactionBuilder(notary)
                 .addInputState(inAssetTransfer)
-                .addOutputState(outAssetTransfer, AssetTransferContract.ASSET_CONTRACT_ID)
+                .addOutputState(outAssetTransfer, AssetTransferContract.ASSET_TRANSFER_CONTRACT_ID)
                 .addCommand(command)
                 .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(60));
 
