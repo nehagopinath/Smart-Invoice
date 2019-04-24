@@ -122,9 +122,10 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
 
       PublicKey ourSigningKey = assetTransfer.getSecuritySeller().getOwningKey();
 
+      List<PublicKey> requiredSigners = Arrays.asList(getOurIdentity().getOwningKey(), securityBuyer.getOwningKey());
+
       final Command<AssetTransferContract.Commands.CreateRequest> command = new Command(
-              new AssetTransferContract.Commands.CreateRequest(),
-              ImmutableList.of(assetTransfer.getSecuritySeller().getOwningKey()));
+              new AssetTransferContract.Commands.CreateRequest(),requiredSigners);
 
       progressTracker.setCurrentStep(BUILDING);
       // We create a transaction builder and add the components.
@@ -135,7 +136,7 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
 
       // Signing the transaction.
       progressTracker.setCurrentStep(SIGNING);
-      SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder,ourSigningKey);
+      SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
 
       // Creating a session with the other party.
       FlowSession otherPartySession = initiateFlow(securityBuyer);
@@ -143,7 +144,7 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
       // Obtaining the counter-party's signature.
       progressTracker.setCurrentStep(COLLECTING);
       final SignedTransaction fullySignedTx = subFlow(
-              new CollectSignaturesFlow(signedTx, ImmutableSet.of(otherPartySession),CollectSignaturesFlow.Companion.tracker()));
+              new CollectSignaturesFlow(signedTx, Arrays.asList(otherPartySession),CollectSignaturesFlow.tracker()));
 
       progressTracker.setCurrentStep(FINALISING);
       // Finalising the transaction.
