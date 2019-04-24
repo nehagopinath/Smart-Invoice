@@ -32,8 +32,8 @@ public final class SignTxFlow extends SignTransactionFlow {
 
    }
 
-   public SignTxFlow( FlowSession otherFlow) {
-      super(otherFlow,null);
+   public SignTxFlow(FlowSession otherFlow) {
+      super(otherFlow, null);
    }
 }
 

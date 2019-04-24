@@ -143,7 +143,7 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
         getLogger().info(this.resolveIdentity(this.getServiceHub(),assetTransfer.getSecurityBuyer()).getName().toString());
 
 
-        if (getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), assetTransfer.getSecurityBuyer()).getName()) {
+        if (this.getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), assetTransfer.getSecurityBuyer()).getName()) {
             throw new InvalidPartyException("Flow must be initiated by Lender Of Cash.");
         }
 
@@ -234,7 +234,6 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
                         otherPartySession,
                         CollectionsKt.listOf(assetTransfer.getSecurityBuyer().getOwningKey()),
                         COLLECTING.childProgressTracker()));
-
 
 
         // Finalising the transaction.

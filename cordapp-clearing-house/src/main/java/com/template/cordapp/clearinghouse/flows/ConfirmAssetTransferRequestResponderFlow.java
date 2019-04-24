@@ -19,6 +19,7 @@ public final class ConfirmAssetTransferRequestResponderFlow extends FlowLogic<Si
    @Suspendable
    public SignedTransaction call() throws FlowException {
       this.subFlow((new IdentitySyncFlow.Receive(this.otherSideSession)));
+      //TODO fix this with adding progress trackers
       SignedTransaction stx = this.subFlow((new SignTxFlow(this.otherSideSession)));
       return waitForLedgerCommit(stx.getId());
    }
