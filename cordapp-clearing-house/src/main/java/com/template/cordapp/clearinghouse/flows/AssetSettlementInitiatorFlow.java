@@ -66,7 +66,7 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
     private static final ProgressTracker.Step IDENTITY_SYNC = new ProgressTracker.Step("Sync identities with counter parties.") {
         @Override
         public ProgressTracker childProgressTracker() {
-            return IdentitySyncFlow.send.Companion.tracker();
+            return IdentitySyncFlow.Send.Companion.tracker();
         }
 
     };
@@ -229,7 +229,7 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
 
 
         progressTracker.setCurrentStep(IDENTITY_SYNC);
-        this.subFlow(new IdentitySyncFlow.send(otherPartySession,
+        this.subFlow(new IdentitySyncFlow.Send(otherPartySession,
                 txBuilder.toWireTransaction(getServiceHub()),
                 IDENTITY_SYNC.childProgressTracker()));
 

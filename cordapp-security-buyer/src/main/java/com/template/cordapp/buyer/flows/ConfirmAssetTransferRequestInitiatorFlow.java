@@ -48,7 +48,7 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
     private final ProgressTracker.Step IDENTITY_SYNC = new ProgressTracker.Step("Sync identities with counter parties") {
         @Override
         public ProgressTracker childProgressTracker() {
-            return IdentitySyncFlow.send.Companion.tracker();
+            return IdentitySyncFlow.Send.Companion.tracker();
         }
 
     };
@@ -120,7 +120,11 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
         Intrinsics.checkExpressionValueIsNotNull(anonymousCustodian, "anonymousCustodian");
         List participants = CollectionsKt.plus(participants1, anonymousCustodian);
 
-       AssetTransfer assetTransfer = input.getState().getData().copy(null,null,anonymousMe,anonymousCustodian,PENDING,participants,linearId);
+        Asset asset = input.getState().getData().getAsset();
+
+        AbstractParty securitySeller = input.getState().getData().getSecuritySeller();
+
+       AssetTransfer assetTransfer = input.getState().getData().copy(asset,securitySeller,anonymousMe,anonymousCustodian,PENDING,participants,linearId);
 
         if (getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), assetTransfer.getSecurityBuyer()).getName()) {
             throw new InvalidPartyException("Flow must be initiated by Lender Of Cash.");
@@ -186,11 +190,11 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
             otherSideSession.add(flowSession);
         }
 
-        Set<AbstractParty> otherPartySession = CollectionsKt.toSet(otherSideSession);
+        Set<FlowSession> otherPartySession = CollectionsKt.toSet(otherSideSession);
 
         progressTracker.setCurrentStep(IDENTITY_SYNC);
 
-        this.subFlow(new IdentitySyncFlow.send(otherPartySession,
+        this.subFlow(new IdentitySyncFlow.Send(otherPartySession,
                 txBuilder.toWireTransaction(getServiceHub()),
                 IDENTITY_SYNC.childProgressTracker()));
 
