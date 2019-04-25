@@ -18,8 +18,11 @@ public final class ReceiveTransactionUnVerifiedFlow extends FlowLogic {
 
    @Suspendable
    public SignedTransaction call() throws FlowException {
-      FlowSession thisS = this.otherSideSession;
-      UntrustworthyData receiveriv = thisS.receive(SignedTransaction.class);
+      //FlowSession thisS = this.otherSideSession;
+      UntrustworthyData receiveriv = this.otherSideSession.receive(SignedTransaction.class);
+      getLogger().info("============= Untrustworthy data");
+      getLogger().info(receiveriv.toString());
+
       SignedTransaction it = (SignedTransaction)receiveriv.getFromUntrustedWorld();
       this.subFlow((new ResolveTransactionsFlow(it, this.otherSideSession)));
       return it;

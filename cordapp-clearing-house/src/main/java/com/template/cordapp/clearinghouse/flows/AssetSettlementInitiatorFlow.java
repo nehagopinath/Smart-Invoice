@@ -9,8 +9,11 @@ import com.template.cordapp.common.flows.ReceiveTransactionUnVerifiedFlow;
 import com.template.cordapp.contract.AssetTransferContract;
 import com.template.cordapp.flows.AbstractAssetSettlementFlow;
 
+import java.security.PublicKey;
 import java.security.SignatureException;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -18,6 +21,7 @@ import com.template.cordapp.state.Asset;
 
 import com.template.cordapp.state.AssetTransfer;
 import kotlin.collections.CollectionsKt;
+import kotlin.jvm.internal.Intrinsics;
 import net.corda.confidential.IdentitySyncFlow.Receive;
 import net.corda.core.contracts.Command;
 import net.corda.core.contracts.CommandWithParties;
@@ -25,6 +29,8 @@ import net.corda.core.contracts.StateAndRef;
 import net.corda.core.contracts.TransactionState;
 import net.corda.core.contracts.UniqueIdentifier;
 import net.corda.core.flows.*;
+import net.corda.core.identity.AbstractParty;
+import net.corda.core.identity.AnonymousParty;
 import net.corda.core.identity.Party;
 import net.corda.core.transactions.LedgerTransaction;
 import net.corda.core.transactions.SignedTransaction;
@@ -105,27 +111,53 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
         Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
         //initialization
         progressTracker.setCurrentStep(INITIALISING);
-        StateAndRef inAssetTransfer = this.loadState(this.getServiceHub(), this.linearId, AssetTransfer.class);
-        List participants = (inAssetTransfer.getState().getData()).getParticipants();
+        //StateAndRef inAssetTransfer = this.loadState(this.getServiceHub(), this.linearId, AssetTransfer.class);
+        //List participants = (inAssetTransfer.getState().getData()).getParticipants();
 
-        Asset asset = (Asset) inAssetTransfer.getState().getData();
-        AssetTransfer assetTransfer = (AssetTransfer) inAssetTransfer.getState().getData();
+        StateAndRef<AssetTransfer> input = this.loadState(this.getServiceHub(), this.linearId, AssetTransfer.class);
 
-        AssetTransfer outAssetTransfer = new AssetTransfer(asset, null, null, null, TRANSFERRED, participants, linearId);
+        List participants = input.getState().getData().getParticipants();
+        //Collection participants = input.getState().getData().getParticipants();
+        Asset asset = input.getState().getData().getAsset();
+        AbstractParty securitySeller = input.getState().getData().getSecuritySeller();
+        AbstractParty securityBuyer = input.getState().getData().getSecurityBuyer();
 
-        if (getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), outAssetTransfer.getClearingHouse()).getName()) {
+
+        AssetTransfer assetTransfer = (AssetTransfer) input.getState().getData();
+
+        AssetTransfer outAssetTransfer = new AssetTransfer(asset,
+                securitySeller,
+                securityBuyer,
+                (AbstractParty) this.getOurIdentity(),
+                TRANSFERRED,
+                participants,
+                linearId);
+
+        getLogger().info("========getOurIDentity.getname");
+        getLogger().info(this.getOurIdentity().getName().toString());
+
+        getLogger().info("========resolved identity");
+        getLogger().info(this.resolveIdentity(this.getServiceHub(), outAssetTransfer.getClearingHouse()).getName().toString());
+
+
+
+        if (this.getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), outAssetTransfer.getClearingHouse()).getName()) {
             throw new InvalidPartyException("Flow must be initiated by Custodian.");
         }
 
+        List<PublicKey> requiredSigners = Arrays.asList(
+                getOurIdentity().getOwningKey(),
+                outAssetTransfer.getSecurityBuyer().getOwningKey(),
+                outAssetTransfer.getSecuritySeller().getOwningKey());
+
         final Command<AssetTransferContract.Commands.SettleRequest> command = new Command(
-                new AssetTransferContract.Commands.SettleRequest(),
-                ImmutableList.of(assetTransfer.getParticipants()));
+                new AssetTransferContract.Commands.SettleRequest(), requiredSigners);
 
 
         // build
         progressTracker.setCurrentStep(BUILDING);
         TransactionBuilder txBuilder = new TransactionBuilder(notary)
-                .addInputState(inAssetTransfer)
+                .addInputState(input)
                 .addOutputState(outAssetTransfer, AssetTransferContract.ASSET_TRANSFER_CONTRACT_ID)
                 .addCommand(command)
                 .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(60));
