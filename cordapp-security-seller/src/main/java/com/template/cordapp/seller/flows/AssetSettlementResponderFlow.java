@@ -1,6 +1,7 @@
 package com.template.cordapp.seller.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
+import com.synechron.cordapp.contract.AssetContract;
 import com.template.cordapp.common.exception.TooManyStatesFoundException;
 import com.template.cordapp.common.flows.SignTxFlow;
 import com.template.cordapp.flows.AbstractAssetSettlementFlow;
@@ -10,6 +11,7 @@ import com.template.cordapp.state.AssetTransfer;
 
 import com.template.cordapp.utils.UtilsKt;
 import kotlin.collections.CollectionsKt;
+import kotlin.jvm.internal.Intrinsics;
 import net.corda.confidential.IdentitySyncFlow;
 import net.corda.core.contracts.*;
 import net.corda.core.flows.*;
@@ -71,15 +73,6 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
       progressTracker.setCurrentStep(ADD_ASSET);
       Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
-
-      SignedTransaction ptx = subFlow(new ReceiveTransactionFlow(otherSideSession, false, StatesToRecord.NONE));
-
-      try {
-         LedgerTransaction ltx1 = ptx.toLedgerTransaction(getServiceHub(), false);
-      } catch (SignatureException e) {
-         e.printStackTrace();
-      }
-
       SignedTransaction ptx1 = (SignedTransaction) this.subFlow((FlowLogic) (new ReceiveTransactionFlow(this.otherSideSession, false, StatesToRecord.NONE)));
 
       LedgerTransaction ltx1 = null;
@@ -103,27 +96,28 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
       //throw too many states found exception if this fails
       AssetTransfer assetTransfer = (AssetTransfer) CollectionsKt.singleOrNull((List) destinationAT);
 
-
-      if (assetTransfer != null){
+      /* if (assetTransfer == null){
          throw (new TooManyStatesFoundException("Transaction with more than one `AssetTransfer` " + "input states received from `" + this.otherSideSession.getCounterparty() + "` party"));
-      }
+      } */
 
-      StateAndRef assetStateAndRef = (StateAndRef) UtilsKt.getAssetByCusip(getServiceHub(),assetTransfer.getAsset().getCusip());
+      StateAndRef assetStateAndRef = UtilsKt.getAssetByCusip(getServiceHub(),assetTransfer.getAsset().getCusip());
 
-
-      //CommandAndState(cmd, assetOutState)commandAndState = (CommandAndState)assetStateAndRef.getState().getData().withNewOwner(assetTransfer.getSecurityBuyer());
+      CommandAndState cmdState = ((Asset)assetStateAndRef.getState().getData()).withNewOwner(assetTransfer.getSecurityBuyer());
+      CommandData cmd = cmdState.component1();
+      OwnableState assetOutState = cmdState.component2();
 
 
       TransactionBuilder txBuilder = new TransactionBuilder(notary)
-              .addInputState(assetStateAndRef);
-              //.addOutputState(assetOutState, AssetContract.ASSET_CONTRACT_ID)
-             // .addCommand(cmd, assetOutState.getOwner.getOwningKey);
+              .addInputState(assetStateAndRef)
+              .addOutputState(assetOutState, AssetContract.ASSET_CONTRACT_ID)
+              .addCommand(cmd, assetOutState.getOwner().getOwningKey());
 
 
       SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
 
-      progressTracker.setCurrentStep(SYNC_IDENTITY);
       this.subFlow((new SendTransactionFlow(otherSideSession, signedTx)));
+
+      progressTracker.setCurrentStep(SYNC_IDENTITY);
 
       subFlow(new IdentitySyncFlow.Receive(otherSideSession));
 
@@ -134,17 +128,24 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
 
    @Override
    public Party firstNotary(@NotNull ServiceHub $receiver) {
-      return null;
+      Intrinsics.checkParameterIsNotNull($receiver, "$receiver");
+      return DefaultImpls.firstNotary( $receiver);
    }
+
 
    @Override
    public StateAndRef loadState(@NotNull ServiceHub $receiver, @NotNull UniqueIdentifier linearId, @NotNull Class clazz) {
-      return null;
+      Intrinsics.checkParameterIsNotNull($receiver, "$receiver");
+      Intrinsics.checkParameterIsNotNull(linearId, "linearId");
+      Intrinsics.checkParameterIsNotNull(clazz, "clazz");
+      return DefaultImpls.loadState( $receiver, linearId, clazz);
    }
 
    @Override
    public Party resolveIdentity(@NotNull ServiceHub $receiver, @NotNull AbstractParty abstractParty) {
-      return null;
+      Intrinsics.checkParameterIsNotNull($receiver, "$receiver");
+      Intrinsics.checkParameterIsNotNull(abstractParty, "abstractParty");
+      return DefaultImpls.resolveIdentity( $receiver, abstractParty);
    }
 }
 
