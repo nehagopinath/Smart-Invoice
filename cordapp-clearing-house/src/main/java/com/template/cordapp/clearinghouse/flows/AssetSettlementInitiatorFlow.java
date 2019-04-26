@@ -1,7 +1,6 @@
 package com.template.cordapp.clearinghouse.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.template.cordapp.common.exception.InvalidPartyException;
 import com.template.cordapp.common.flows.IdentitySyncFlow;
@@ -13,7 +12,6 @@ import java.security.PublicKey;
 import java.security.SignatureException;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -21,7 +19,6 @@ import com.template.cordapp.state.Asset;
 
 import com.template.cordapp.state.AssetTransfer;
 import kotlin.collections.CollectionsKt;
-import kotlin.jvm.internal.Intrinsics;
 import net.corda.confidential.IdentitySyncFlow.Receive;
 import net.corda.core.contracts.Command;
 import net.corda.core.contracts.CommandWithParties;
@@ -30,7 +27,6 @@ import net.corda.core.contracts.TransactionState;
 import net.corda.core.contracts.UniqueIdentifier;
 import net.corda.core.flows.*;
 import net.corda.core.identity.AbstractParty;
-import net.corda.core.identity.AnonymousParty;
 import net.corda.core.identity.Party;
 import net.corda.core.transactions.LedgerTransaction;
 import net.corda.core.transactions.SignedTransaction;
@@ -134,21 +130,39 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
                 linearId);
 
         getLogger().info("========getOurIDentity.getname");
-        getLogger().info(this.getOurIdentity().getName().toString());
+        getLogger().info(getOurIdentity().getName().toString());
 
         getLogger().info("========resolved identity");
         getLogger().info(this.resolveIdentity(this.getServiceHub(), outAssetTransfer.getClearingHouse()).getName().toString());
 
 
 
-        if (this.getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), outAssetTransfer.getClearingHouse()).getName()) {
+        if (getOurIdentity().getName() != this.resolveIdentity(getServiceHub(), outAssetTransfer.getClearingHouse()).getName()) {
             throw new InvalidPartyException("Flow must be initiated by Custodian.");
         }
 
+        getLogger().info("==================Participants");
+
+        getLogger().info(outAssetTransfer.getParticipants().toString());
+
+        getLogger().info("============= rEquired keys that are being sent");
+        getLogger().info(outAssetTransfer.getClearingHouse().getOwningKey().toString());
+        getLogger().info(outAssetTransfer.getSecuritySeller().getOwningKey().toString());
+        getLogger().info(outAssetTransfer.getSecurityBuyer().getOwningKey().toString());
+
+        getLogger().info("============== clearing house extracted from participants");
+        getLogger().info(outAssetTransfer.getParticipants().get(2).getOwningKey().toString());
+        getLogger().info(outAssetTransfer.getParticipants().get(1).getOwningKey().toString());
+        getLogger().info(outAssetTransfer.getParticipants().get(0).getOwningKey().toString());
+
+        getLogger().info("=============== clearing house from our identity * this should match with clearing house above");
+        getLogger().info(getOurIdentity().getOwningKey().toString());
+
+
         List<PublicKey> requiredSigners = Arrays.asList(
-                getOurIdentity().getOwningKey(),
-                outAssetTransfer.getSecurityBuyer().getOwningKey(),
-                outAssetTransfer.getSecuritySeller().getOwningKey());
+                outAssetTransfer.getParticipants().get(0).getOwningKey(),
+                outAssetTransfer.getParticipants().get(1).getOwningKey(),
+                outAssetTransfer.getParticipants().get(2).getOwningKey());
 
         final Command<AssetTransferContract.Commands.SettleRequest> command = new Command(
                 new AssetTransferContract.Commands.SettleRequest(), requiredSigners);
@@ -168,19 +182,29 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
         //Create temporary partial transaction.
         SignedTransaction tempPtx = this.getServiceHub().signInitialTransaction(txBuilder);
 
+        getLogger().info("======= temp partial txn signed by us");
+
         //Send partial transaction to Security Owner i.e. `Seller`.
         FlowSession securitySellerSession = this.initiateFlow(this.resolveIdentity(this.getServiceHub(), outAssetTransfer.getSecuritySeller()));
-        this.subFlow(new SendTransactionFlow(securitySellerSession, tempPtx));
+        subFlow(new SendTransactionFlow(securitySellerSession, tempPtx));
+
+        getLogger().info("======= temp partial to security seller");
 
         //Receive transaction with input and output of Asset state.
-        SignedTransaction assetPtx = (SignedTransaction) this.subFlow((new ReceiveTransactionUnVerifiedFlow(securitySellerSession)));
+        SignedTransaction assetPtx = subFlow((new ReceiveTransactionUnVerifiedFlow(securitySellerSession)));
+
+        getLogger().info("======= Receive transaction with input and output of Asset state.");
 
         //Send partial transaction to `Buyer`.
         FlowSession securityBuyerSession = this.initiateFlow(this.resolveIdentity(this.getServiceHub(), outAssetTransfer.getSecurityBuyer()));
-        this.subFlow((new SendTransactionFlow(securityBuyerSession, tempPtx)));
+        subFlow((new SendTransactionFlow(securityBuyerSession, tempPtx)));
+
+        getLogger().info("======= temp partial to security Buyer");
 
         //Send flows ID for soft lock of the cash state.
         securityBuyerSession.send(txBuilder.getLockId());
+
+        getLogger().info("======= soft lock of the cash state");
 
         //Receive and register the anonymous identity were created for Cash transfer.
         this.subFlow(((new Receive(securityBuyerSession))));
