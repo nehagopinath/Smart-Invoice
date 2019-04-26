@@ -130,9 +130,9 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
         getLogger().info("========resolved identity");
         getLogger().info(this.resolveIdentity(this.getServiceHub(), assetTransfer.getClearingHouse()).getName().toString());
 
-        if (getOurIdentity().getName() != this.resolveIdentity(getServiceHub(), assetTransfer.getClearingHouse()).getName()) {
+       /* if (getOurIdentity().getName() != this.resolveIdentity(getServiceHub(), assetTransfer.getClearingHouse()).getName()) {
             throw new InvalidPartyException("Flow must be initiated by Custodian.");
-        }
+        } */
 
         getLogger().info("==================Participants");
 
@@ -154,8 +154,10 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
 
         List<PublicKey> requiredSigners = Arrays.asList(
                 assetTransfer.getSecurityBuyer().getOwningKey(),
-                assetTransfer.getSecurityBuyer().getOwningKey(),
+                assetTransfer.getSecuritySeller().getOwningKey(),
                 getOurIdentity().getOwningKey());
+
+        getLogger().info("Required Signers"+requiredSigners);
 
         final Command<AssetTransferContract.Commands.SettleRequest> command = new Command(
                 new AssetTransferContract.Commands.SettleRequest(), requiredSigners);
@@ -276,6 +278,8 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
 
         // Creating a session with the other party.
         ImmutableSet<FlowSession> otherPartySession = ImmutableSet.of(securityBuyerSession,securitySellerSession);
+
+        getLogger().info("Other Party Session"+otherPartySession);
 
 
         progressTracker.setCurrentStep(IDENTITY_SYNC);

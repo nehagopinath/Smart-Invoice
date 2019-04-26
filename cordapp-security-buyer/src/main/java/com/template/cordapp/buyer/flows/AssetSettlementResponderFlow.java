@@ -1,14 +1,16 @@
 package com.template.cordapp.buyer.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.template.cordapp.common.exception.TooManyStatesFoundException;
+import com.google.common.io.LittleEndianDataOutputStream;
 import com.template.cordapp.common.flows.IdentitySyncFlow;
 import com.template.cordapp.common.flows.SignTxFlow;
 import com.template.cordapp.flows.AbstractAssetSettlementFlow;
 import com.template.cordapp.state.AssetTransfer;
 import kotlin.Pair;
 import kotlin.collections.CollectionsKt;
+import kotlin.collections.SetsKt;
 import net.corda.core.flows.*;
+import net.corda.core.identity.AbstractParty;
 import net.corda.core.node.StatesToRecord;
 import net.corda.core.transactions.LedgerTransaction;
 import net.corda.core.transactions.SignedTransaction;
@@ -16,6 +18,8 @@ import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
 import net.corda.core.utilities.UntrustworthyData;
 import net.corda.finance.contracts.asset.Cash;
+
+
 import java.security.SignatureException;
 import java.util.*;
 
@@ -50,7 +54,15 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
 
        progressTracker.setCurrentStep(ADD_CASH);
 
-       SignedTransaction ptx1 = (SignedTransaction) this.subFlow((FlowLogic) (new ReceiveTransactionFlow(this.otherSideSession, false, StatesToRecord.NONE)));
+   /*    SignedTransaction ptx = subFlow(new ReceiveTransactionFlow(otherSideSession, false, StatesToRecord.NONE));
+
+       try {
+           LedgerTransaction  ltx = ptx.toLedgerTransaction(getServiceHub(), false);
+       } catch (SignatureException e) {
+           e.printStackTrace();
+       } */
+
+      SignedTransaction ptx1 = (SignedTransaction) this.subFlow((FlowLogic) (new ReceiveTransactionFlow(this.otherSideSession, false, StatesToRecord.NONE)));
 
        LedgerTransaction ltx1 = null;
        try {
@@ -83,14 +95,17 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
 
        //Issue cash to security owner i.e. `Seller` party.
 
+
        Pair AB = Cash.generateSpend(this.getServiceHub(),
-               new TransactionBuilder(ltx1.getNotary(),it,null,null,null,null,null,null), //soft reserve the cash state.
+               new TransactionBuilder(ltx1.getNotary()), //soft reserve the cash state.
                assetTransfer.getAsset().getPurchaseCost(),
                this.getOurIdentityAndCert(),
-               assetTransfer.getSecuritySeller(),
-               null);
+               assetTransfer.getSecuritySeller(), SetsKt.emptySet());
 
        TransactionBuilder txbWithCash = (TransactionBuilder) AB.component1();
+
+       txbWithCash.setLockId(it);
+
        List cashSignKeys = (List)AB.component2();
 
        SignedTransaction ptx2 = this.getServiceHub().signInitialTransaction(txbWithCash);
