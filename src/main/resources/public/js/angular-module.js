@@ -38,7 +38,7 @@ app.controller('IdpController', function($http, $location, $uibModal) {
             .reverse());
 
     idpApp.getMyTransactions = () => $http.get(apiBaseURL + "my-transactions")
-        .then((response) => idpApp.my-transactions = Object.keys(response.data)
+        .then((response) => idpApp.mytransactions = Object.keys(response.data)
             .map((key) => response.data[key].state.data)
             .reverse());
 
@@ -64,10 +64,9 @@ app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstanc
                 let CREATE_TRANSACTIONS_PATH = apiBaseURL + "create-transaction"
 
                 let createTransactionData = $.param({
-                    cusip: modalInstance.form.cusip,
+                    cusipValue: modalInstance.form.cusip,
                     transactionAssetName : modalInstance.form.assetName,
                     transactionPurchaseCost : modalInstance.form.purchaseCost
-
                 });
 
                 let createTransactionHeaders = {

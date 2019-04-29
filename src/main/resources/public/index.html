@@ -21,21 +21,21 @@
         <div class="navbar-header">
             <a class="navbar-brand" href="#">{{idpApp.thisNode}}</a>
         </div>
-        <button ng-click="idpApp.openModal()" type="button" class="btn btn-primary navbar-btn">Create Transaction</button>
+        <button ng-click="idpApp.openModal()" type="button" class="btn btn-primary navbar-btn">Create Invoice</button>
     </div>
 </nav>
 <script type="text/ng-template" id="idpAppModal.html">
     <div class="modal-header">
-        <h4 class="modal-title">Add new transaction</h4>
+        <h4 class="modal-title">Create invoice</h4>
     </div>
     <form>
         <div class="modal-body">
             <div class="form-group">
-                <label for="cusip" class="control-label">Cusip:</label>
+                <label for="cusip" class="control-label">Identification:</label>
                 <input type="text" ng-model="modalInstance.form.value" class="form-control" id="cusip">
             </div>
             <div class="form-group">
-                <label for="assetName" class="control-label">Asset Name:</label>
+                <label for="assetName" class="control-label">Invoice Item Name:</label>
                 <input type="text" ng-model="modalInstance.form.value" class="form-control" id="assetName">
             </div>
             <div class="form-group">
@@ -53,7 +53,7 @@
         </div>
         <div class="modal-footer">
             <button ng-click="modalInstance.cancel()" type="button" class="btn btn-default">Close</button>
-            <button ng-click="modalInstance.create()" type="button" class="btn btn-primary">Create Transaction</button>
+            <button ng-click="modalInstance.create()" type="button" class="btn btn-primary">Create Invoice</button>
         </div>
     </form>
 </script>
@@ -71,12 +71,12 @@
                 <div class="panel-primary">
                     <div class="panel-heading">
                         <h4 class="panel-title">
-                            My Transactions:
+                            My Invoices:
                         </h4>
                     </div>
                 </div>
                 <div>
-                    <div ng-repeat="iou in idpApp.myious" class="panel panel-default">
+                    <div ng-repeat="iou in idpApp.mytransactions" class="panel panel-default">
                         <div class="panel-body">
                             <ul>
                                 <li>Lender: {{iou.lender}}</li>
