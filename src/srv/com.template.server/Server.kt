@@ -70,14 +70,20 @@ class MainController(rpc: NodeRPCConnection) {
      * The flow is invoked asynchronously. It returns a future when the flow's call() method returns.
      */
 
-    @PostMapping(value = [ "create-iou" ], produces = [ TEXT_PLAIN_VALUE ], headers = [ "Content-Type=application/x-www-form-urlencoded" ])
+    @PostMapping(value = [ "create-transaction" ], produces = [ TEXT_PLAIN_VALUE ], headers = [ "Content-Type=application/x-www-form-urlencoded" ])
     fun createIOU(request: HttpServletRequest): ResponseEntity<String> {
-        val iouValue = request.getParameter("iouValue").toInt()
-        val partyName = request.getParameter("partyName")
-        if(partyName == null){
-            return ResponseEntity.badRequest().body("Query parameter 'partyName' must not be null.\n")
+
+        val cusipValue = request.getParameter("cusipValue")
+        val transactionAssetName = request.getParameter("transactionAssetName")
+        val transactionPurchaseCost = request.getParameter("transactionPurchaseCost").toInt()
+
+        if(cusipValue == null){
+            return ResponseEntity.badRequest().body("Query parameter 'cusipValue' must not be null.\n")
         }
-        if (iouValue <= 0 ) {
+        if(transactionAssetName == null){
+            return ResponseEntity.badRequest().body("Query parameter 'transactionAssetName' must not be null.\n")
+        }
+        if (transactionPurchaseCost <= 0 ) {
             return ResponseEntity.badRequest().body("Query parameter 'iouValue' must be non-negative.\n")
         }
         val partyX500Name = CordaX500Name.parse(partyName)
@@ -96,10 +102,10 @@ class MainController(rpc: NodeRPCConnection) {
     /**
      * Displays all IOU states that only this node has been involved in.
      */
-    @GetMapping(value = [ "my-ious" ], produces = [ APPLICATION_JSON_VALUE ])
+   /* @GetMapping(value = [ "my-ious" ], produces = [ APPLICATION_JSON_VALUE ])
     fun getMyIOUs(): ResponseEntity<List<StateAndRef<IOUState>>>  {
         val myious = proxy.vaultQueryBy<IOUState>().states.filter { it.state.data.lender.equals(proxy.nodeInfo().legalIdentities.first()) }
         return ResponseEntity.ok(myious)
-    }
+    }*/
 
 }

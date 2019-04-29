@@ -53,7 +53,7 @@ class MainController(rpc: NodeRPCConnection) {
     /**
      * Displays all IOU states that exist in the node's vault.
      */
-    @GetMapping(value = [ "ious" ], produces = [ APPLICATION_JSON_VALUE ])
+    @GetMapping(value = [ "transactions" ], produces = [ APPLICATION_JSON_VALUE ])
     fun getIOUs() : ResponseEntity<List<StateAndRef<IOUState>>> {
         return ResponseEntity.ok(proxy.vaultQueryBy<IOUState>().states)
     }

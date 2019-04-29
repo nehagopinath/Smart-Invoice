@@ -100,7 +100,7 @@ app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstanc
 
     // Validate the Transaction. ToDo See buyer stuff
     function invalidFormInput() {
-        return isNaN(modalInstance.form.value) || (modalInstance.form.cusip === undefined);
+        return isNaN(modalInstance.form.purchaseCost) || (modalInstance.form.cusip === undefined);
     }
 });
 
