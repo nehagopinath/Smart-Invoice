@@ -1,7 +1,7 @@
 package com.template.server
 
-import com.example.flow.ExampleFlow.Initiator
-import com.example.state.IOUState
+import com.template.cordapp.state.Asset;
+import com.template.cordapp.seller.flows.CreateAssetStateFlow;
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.startTrackedFlow
@@ -54,8 +54,8 @@ class MainController(rpc: NodeRPCConnection) {
      * Displays all IOU states that exist in the node's vault.
      */
     @GetMapping(value = [ "transactions" ], produces = [ APPLICATION_JSON_VALUE ])
-    fun getIOUs() : ResponseEntity<List<StateAndRef<IOUState>>> {
-        return ResponseEntity.ok(proxy.vaultQueryBy<IOUState>().states)
+    fun getTransactions() : ResponseEntity<List<StateAndRef<Asset>>> {
+        return ResponseEntity.ok(proxy.vaultQueryBy<Asset>().states)
     }
 
     /**
@@ -70,15 +70,22 @@ class MainController(rpc: NodeRPCConnection) {
      * The flow is invoked asynchronously. It returns a future when the flow's call() method returns.
      */
 
-    @PostMapping(value = [ "create-iou" ], produces = [ TEXT_PLAIN_VALUE ], headers = [ "Content-Type=application/x-www-form-urlencoded" ])
-    fun createIOU(request: HttpServletRequest): ResponseEntity<String> {
-        val iouValue = request.getParameter("iouValue").toInt()
-        val partyName = request.getParameter("partyName")
-        if(partyName == null){
-            return ResponseEntity.badRequest().body("Query parameter 'partyName' must not be null.\n")
+    @PostMapping(value = [ "create-transaction" ], produces = [ TEXT_PLAIN_VALUE ], headers = [ "Content-Type=application/x-www-form-urlencoded" ])
+    fun createTransaction(request: HttpServletRequest): ResponseEntity<String> {
+
+        val cusip = request.getParameter("cusip")
+        val assetName = request.getParameter("assetName")
+        val purchaseCost = request.getParameter("purchaseCost").toInt()
+
+
+        if(cusip == null){++
+            return ResponseEntity.badRequest().body("Query parameter 'cusip' must not be null.\n")
         }
-        if (iouValue <= 0 ) {
-            return ResponseEntity.badRequest().body("Query parameter 'iouValue' must be non-negative.\n")
+        if(assetName == null){
+            return ResponseEntity.badRequest().body("Query parameter 'assetName' must not be null.\n")
+        }
+        if (purchaseCost <= 0 ) {
+            return ResponseEntity.badRequest().body("Query parameter 'purchaseCost' must be non-negative.\n")
         }
         val partyX500Name = CordaX500Name.parse(partyName)
         val otherParty = proxy.wellKnownPartyFromX500Name(partyX500Name) ?: return ResponseEntity.badRequest().body("Party named $partyName cannot be found.\n")
@@ -96,10 +103,10 @@ class MainController(rpc: NodeRPCConnection) {
     /**
      * Displays all IOU states that only this node has been involved in.
      */
-    @GetMapping(value = [ "my-ious" ], produces = [ APPLICATION_JSON_VALUE ])
+    /*@GetMapping(value = [ "my-ious" ], produces = [ APPLICATION_JSON_VALUE ])
     fun getMyIOUs(): ResponseEntity<List<StateAndRef<IOUState>>>  {
         val myious = proxy.vaultQueryBy<IOUState>().states.filter { it.state.data.lender.equals(proxy.nodeInfo().legalIdentities.first()) }
         return ResponseEntity.ok(myious)
-    }
+    }*/
 
 }

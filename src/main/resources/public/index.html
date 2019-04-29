@@ -76,12 +76,13 @@
                     </div>
                 </div>
                 <div>
-                    <div ng-repeat="iou in idpApp.mytransactions" class="panel panel-default">
+                    <div ng-repeat="invoice in idpApp.transactions" class="panel panel-default">
                         <div class="panel-body">
                             <ul>
-                                <li>Lender: {{iou.lender}}</li>
-                                <li>Borrower: {{iou.borrower}}</li>
-                                <li>Value: {{iou.value}}</li>
+                                <li>Cusip: {{invoice.cusip}}</li>
+                                <li>Asset Name: {{invoice.assetName}}</li>
+                                <li>Value: {{invoice.purchaseCost}}</li>
+                                <li>Owner: {{invoice.owner}}</li>
                             </ul>
                         </div>
                     </div>

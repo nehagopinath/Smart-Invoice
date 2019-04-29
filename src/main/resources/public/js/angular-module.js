@@ -37,13 +37,13 @@ app.controller('IdpController', function($http, $location, $uibModal) {
             .map((key) => response.data[key].state.data)
             .reverse());
 
-    idpApp.getMyTransactions = () => $http.get(apiBaseURL + "my-transactions")
+    /*idpApp.getMyTransactions = () => $http.get(apiBaseURL + "my-transactions")
         .then((response) => idpApp.mytransactions = Object.keys(response.data)
             .map((key) => response.data[key].state.data)
-            .reverse());
+            .reverse());*/
 
     idpApp.getTransactions();
-    idpApp.getMyTransactions();
+    //idpApp.getMyTransactions();
 });
 
 app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstance, $uibModal, idpApp, apiBaseURL, peers) {
