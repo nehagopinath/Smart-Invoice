@@ -1,7 +1,7 @@
 package com.template.server
 
 import com.template.cordapp.state.Asset;
-import com.template.cordapp.seller.flows.CreateAssetStateFlow;
+import com.template.cordapp.seller.flows.CreateAssetStateFlow.Initiator;
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.startTrackedFlow
@@ -91,7 +91,7 @@ class MainController(rpc: NodeRPCConnection) {
         val otherParty = proxy.wellKnownPartyFromX500Name(partyX500Name) ?: return ResponseEntity.badRequest().body("Party named $partyName cannot be found.\n")
 
         return try {
-            val signedTx = proxy.startTrackedFlow(::Initiator, iouValue, otherParty).returnValue.getOrThrow()
+            val signedTx = proxy.startTrackedFlow(::Initiator, cusip, assetName,purchaseCost).returnValue.getOrThrow()
             ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${signedTx.id} committed to ledger.\n")
 
         } catch (ex: Throwable) {
