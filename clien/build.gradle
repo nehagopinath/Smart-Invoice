@@ -1,3 +1,4 @@
+
 repositories {
     mavenLocal()
     jcenter()
@@ -5,8 +6,13 @@ repositories {
     maven { url 'https://jitpack.io' }
     maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda-releases' }
 }
+
+
+
+
 apply plugin: 'kotlin'
-apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'io.spring.dependency-management' 
 apply plugin: 'net.corda.plugins.cordapp'
 apply plugin: 'net.corda.plugins.cordformation'
 apply plugin: 'net.corda.plugins.quasar-utils'
@@ -18,7 +24,7 @@ sourceSets {
         }
     }
 
-   test {
+    test {
         resources {
             srcDir rootProject.file("config/test")
         }
@@ -37,9 +43,16 @@ configurations {
     integrationTestRuntime.extendsFrom testRuntime
 }
 
+// See https://docs.spring.io/dependency-management-plugin/docs/current/reference/html
+dependencyManagement {
+    dependencies {
+        dependency "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version"
+    }
+}
+
 dependencies {
     testCompile "junit:junit:$junit_version"
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 
     // Corda integration dependencies
@@ -54,9 +67,18 @@ dependencies {
 
     testCompile "$corda_release_group:corda-node-driver:$corda_release_version"
 
+    compile("org.springframework.boot:spring-boot-starter-websocket:$spring_boot_version") {
+        exclude group: "org.springframework.boot", module: "spring-boot-starter-logging"
+    }
+    compile "org.springframework.boot:spring-boot-starter-log4j2:$spring_boot_version"
+    compile "org.apache.logging.log4j:log4j-web:$log4j_version"
+
     // CorDapp dependencies.
-    cordapp project(":cordapp-contracts-states")
     cordapp project(":cordapp-common")
+    cordapp project(":cordapp-contracts-states")
+    cordapp project(":cordapp-security-buyer")
+    cordapp project(":cordapp-security-seller")
+    cordapp project(":cordapp-clearing-house")
 }
 
 task integrationTest(type: Test, dependsOn: []) {
@@ -75,4 +97,15 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
         jvmTarget = "1.8"
         javaParameters = true   // Useful for reflection.
     }
+}
+task runPartySellerServer(type: JavaExec, dependsOn: jar) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.template.cordapp.server.ServerKt'
+    args '--server.port=50006', '--config.rpc.host=localhost', '--config.rpc.port=10006', '--config.rpc.username=user1', '--config.rpc.password=test'
+}
+
+task runPartyBuyerServer(type: JavaExec, dependsOn: jar) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.template.cordapp.server.ServerKt'
+    args '--server.port=50006', '--config.rpc.host=localhost', '--config.rpc.port=10006', '--config.rpc.username=user1', '--config.rpc.password=test'
 }

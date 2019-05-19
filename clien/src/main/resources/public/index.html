@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IDP Sample Transfer</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0-rc.1/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.2.0/ui-bootstrap-tpls.min.js"></script>
+    <script src="js/angular-module.js"></script>
+</head>
+<body ng-app="idpModule" ng-controller="IdpController as idpApp">
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">{{idpApp.thisNode}}</a>
+        </div>
+        <button ng-click="idpApp.openModal()" type="button" class="btn btn-primary navbar-btn">Create Invoice</button>
+    </div>
+</nav>
+<script type="text/ng-template" id="idpAppModal.html">
+    <div class="modal-header">
+        <h4 class="modal-title">Create invoice</h4>
+    </div>
+    <form>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="cusip" class="control-label">Identification:</label>
+                <input type="text" ng-model="modalInstance.form.cusip" class="form-control" id="cusip">
+            </div>
+            <div class="form-group">
+                <label for="assetName" class="control-label">Invoice Item Name:</label>
+                <input type="text" ng-model="modalInstance.form.assetName" class="form-control" id="assetName">
+            </div>
+            <div class="form-group">
+                <label for="purchaseCost" class="control-label">Purchase Cost:</label>
+                <input type="text" ng-model="modalInstance.form.purchaseCost" class="form-control" id="purchaseCost">
+            </div>
+
+            <div ng-show="modalInstance.formError" class="form-group">
+                <div class="alert alert-danger" role="alert">
+                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                    <span class="sr-only">Error:</span>
+                    Enter valid Transaction parameters
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button ng-click="modalInstance.cancel()" type="button" class="btn btn-default">Close</button>
+            <button ng-click="modalInstance.create()" type="button" class="btn btn-primary">Create Invoice</button>
+        </div>
+    </form>
+</script>
+<script type="text/ng-template" id="messageContent.html">
+    <div class="modal-body" id="modal-body">
+        {{ modalInstanceTwo.message }}
+    </div>
+</script>
+
+<div class="row">
+    <div class="col-md-1"></div>
+    <div class="col-md-10">
+        <div class="panel-group" id="accordion">
+            <div class="panel">
+                <div class="panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            My Invoices:
+                        </h4>
+                    </div>
+                </div>
+                <div>
+                    <div ng-repeat="invoice in idpApp.transactions" class="panel panel-default">
+                        <div class="panel-body">
+                            <ul>
+                                <li>Identification: {{invoice.cusip}}</li>
+                                <li>Invoice Item Name: {{invoice.assetName}}</li>
+                                <li>Value: {{invoice.purchaseCost}}</li>
+                                <li>Owner: {{invoice.owner}}</li>
+                                <li><button ng-click="openTransfer()" type="button" class="btn btn-primary">Create Transfer</button></li>
+                                <script type="text/ng-template" id="idpAppTransfer.html">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title">Create transfer</h4>
+                                    </div>
+                                    <form>
+                                        <div class="modal-body">
+                                            <div class="form-group">
+                                                <label for="cusip" class="control-label">Identification:</label>
+                                                <input type="text" ng-model="modalInstance.form.cusip" class="form-control" id="cusipTr">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="assetName" class="control-label">Invoice Item Name:</label>
+                                                <input type="text" ng-model="modalInstance.form.assetName" class="form-control" id="assetNameTr">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="purchaseCost" class="control-label">Purchase Cost:</label>
+                                                <input type="text" ng-model="modalInstance.form.purchaseCost" class="form-control" id="purchaseCostTr">
+                                            </div>
+
+                                            <div ng-show="modalInstance.formError" class="form-group">
+                                                <div class="alert alert-danger" role="alert">
+                                                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                                                    <span class="sr-only">Error:</span>
+                                                    Enter valid Transaction parameters
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button ng-click="modalInstance.cancel()" type="button" class="btn btn-default">Cancel</button>
+                                            <button ng-click="modalInstance.create()" type="button" class="btn btn-primary">Confirm</button>
+                                        </div>
+                                    </form>
+                                </script>
+                            </ul>
+                        </div>
+                        <div class="panel-footer">
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-1"></div>
+</div>
+
+</body>
+</html>

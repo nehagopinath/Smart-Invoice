@@ -9,7 +9,7 @@ buildscript {
         spring_boot_gradle_plugin_version = '2.0.2.RELEASE'
         slf4j_version = '1.7.25'
         log4j_version = '2.9.1'
-        kotlin_version = '1.1.60'
+        kotlin_version = '1.2.0'
     }
 
     repositories {
@@ -113,8 +113,8 @@ tasks.withType(JavaCompile) {
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
-        languageVersion = "1.1"
-        apiVersion = "1.1"
+        languageVersion = "1.2"
+        apiVersion = "1.2"
         jvmTarget = "1.8"
         javaParameters = true   // Useful for reflection.
     }
