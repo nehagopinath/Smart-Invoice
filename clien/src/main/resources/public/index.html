@@ -83,40 +83,7 @@
                                 <li>Invoice Item Name: {{invoice.assetName}}</li>
                                 <li>Value: {{invoice.purchaseCost}}</li>
                                 <li>Owner: {{invoice.owner}}</li>
-                                <li><button ng-click="openTransfer()" type="button" class="btn btn-primary">Create Transfer</button></li>
-                                <script type="text/ng-template" id="idpAppTransfer.html">
-                                    <div class="modal-header">
-                                        <h4 class="modal-title">Create transfer</h4>
-                                    </div>
-                                    <form>
-                                        <div class="modal-body">
-                                            <div class="form-group">
-                                                <label for="cusip" class="control-label">Identification:</label>
-                                                <input type="text" ng-model="modalInstance.form.cusip" class="form-control" id="cusipTr">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="assetName" class="control-label">Invoice Item Name:</label>
-                                                <input type="text" ng-model="modalInstance.form.assetName" class="form-control" id="assetNameTr">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="purchaseCost" class="control-label">Purchase Cost:</label>
-                                                <input type="text" ng-model="modalInstance.form.purchaseCost" class="form-control" id="purchaseCostTr">
-                                            </div>
-
-                                            <div ng-show="modalInstance.formError" class="form-group">
-                                                <div class="alert alert-danger" role="alert">
-                                                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-                                                    <span class="sr-only">Error:</span>
-                                                    Enter valid Transaction parameters
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button ng-click="modalInstance.cancel()" type="button" class="btn btn-default">Cancel</button>
-                                            <button ng-click="modalInstance.create()" type="button" class="btn btn-primary">Confirm</button>
-                                        </div>
-                                    </form>
-                                </script>
+                                <li><button ng-click="submitTransfer(invoice)" type="button" class="btn btn-primary">Create Transfer</button></li>
                             </ul>
                         </div>
                         <div class="panel-footer">

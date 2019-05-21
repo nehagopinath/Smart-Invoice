@@ -2,12 +2,14 @@ package com.template.cordapp.server
 
 import com.template.cordapp.state.Asset
 import com.template.cordapp.seller.flows.CreateAssetStateFlow.Initiator
+import com.template.cordapp.seller.flows.CreateAssetTransferRequestInitiatorFlow;
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.startTrackedFlow
 import net.corda.core.messaging.vaultQueryBy
 import net.corda.core.utilities.getOrThrow
 import net.corda.finance.AMOUNT
+import net.corda.core.identity.Party
 import net.corda.finance.USD
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -101,6 +103,35 @@ class MainController(rpc: NodeRPCConnection) {
             ResponseEntity.badRequest().body(ex.message!!)
         }
     }
+
+    @PostMapping(value = [ "create-transsfer" ], produces = [ TEXT_PLAIN_VALUE ], headers =  ["Content-Type=application/x-www-form-urlencoded"] )
+    fun createTransfer(request: HttpServletRequest): ResponseEntity<String> {
+
+        val cusip = request.getParameter("cusipValueTr")
+        val securityBuyer = request.getParameter("transferBuyer")
+
+
+        if(cusip == null){
+            return ResponseEntity.badRequest().body("Query parameter 'cusip' must not be null.\n")
+        }
+        if(securityBuyer == null){
+            return ResponseEntity.badRequest().body("Query parameter 'securityBuyer' must not be null.\n")
+        }
+        //val partyX500Name = CordaX500Name.parse(partyName)
+
+        val secBuyerName=CordaX500Name.parse(securityBuyer)
+        val otherParty = proxy.wellKnownPartyFromX500Name(secBuyerName) ?: return ResponseEntity.badRequest().body("Party named $secBuyerName cannot be found.\n")
+
+        return try {
+            val signedTr = proxy.startTrackedFlow(::CreateAssetTransferRequestInitiatorFlow,cusip,otherParty).returnValue.getOrThrow()
+            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${signedTr.id} committed to ledger.\n")
+
+        } catch (ex: Throwable) {
+            logger.error(ex.message, ex)
+            ResponseEntity.badRequest().body(ex.message!!)
+        }
+    }
+
 
     /**
      * Displays all IOU states that only this node has been involved in.

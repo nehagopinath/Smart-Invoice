@@ -128,30 +128,21 @@ app.controller('messageCtrl', function ($uibModalInstance, message) {
 });
 
 
-app.controller('TransferCtrl', function ($http, $location, $uibModalInstance, $uibModal, idpApp, apiBaseURL, peers) {
+app.controller('TransferCtrl', function ($http, $location,$scope, idpApp, apiBaseURL, peers) {
     const modalTransfer = this;
 
-    modalTransfer.peers = peers;
+    /*modalTransfer.peers = peers;
     modalTransfer.form = {};
-    modalTransfer.formError = false;
+    modalTransfer.formError = false;*/
 
         // Validates and sends Transfer.
-        modalTransfer.create = function validateAndSendTransaction() {
-            if (modalTransfer.form.value <= 0) {
-                modalTransfer.formError = true;
-            } else {
-                modalTransfer.formError = false;
-                $uibModalTransfer.close();
+        $scope.submitTransfer = function (invoice) {
 
-                let CREATE_TRANSACTIONS_PATH = apiBaseURL + "create-transfer"
+                let CREATE_TRANSFER_PATH = apiBaseURL + "create-transfer"
 
                 let createTransferData = $.param({
-                    cusipValueTr: modalTransfer.form.cusipTr,
-                    transferAssetName : modalTransfer.form.assetNameTr,
-                    transferPurchaseCost : modalTransfer.form.purchaseCostTr
-                    transferBuyer : "O=SecurityBuyer"
-                    transferLocation : "L=New York"
-                    transferCountry : "C-US"
+                    cusipValueTr: invoice.cusip,
+                    transferBuyer : "O=SecurityBuyer,L=New York,C=US"
                 });
 
                 let createTransferHeaders = {
@@ -161,11 +152,11 @@ app.controller('TransferCtrl', function ($http, $location, $uibModalInstance, $u
                 };
 
                 // Create Transaction and handles success / fail responses.
-                $http.post(CREATE_TRANSACTIONS_PATH, createTransferData, createTransferHeaders).then(
+                $http.post(CREATE_TRANSFER_PATH, createTransferData, createTransferHeaders).then(
                     modalTransfer.displayMessage,
                     modalTransfer.displayMessage
                 );
-            }
+
         };
 
     modalTransfer.displayMessage = (message) => {
