@@ -1,15 +1,21 @@
 package com.template.cordapp.server
 
 import com.template.cordapp.state.Asset
+import com.template.cordapp.state.AssetTransfer
 import com.template.cordapp.seller.flows.CreateAssetStateFlow.Initiator
-import com.template.cordapp.seller.flows.CreateAssetTransferRequestInitiatorFlow;
+import com.template.cordapp.seller.flows.CreateAssetTransferRequestInitiatorFlow
+import com.template.cordapp.buyer.flows.ConfirmAssetTransferRequestInitiatorFlow
+import net.corda.core.utilities.OpaqueBytes
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.startTrackedFlow
 import net.corda.core.messaging.vaultQueryBy
 import net.corda.core.utilities.getOrThrow
 import net.corda.finance.AMOUNT
+import net.corda.finance.flows.CashIssueFlow
 import net.corda.core.identity.Party
+import net.corda.core.internal.declaredField
+import net.corda.core.serialization.serialize
 import net.corda.finance.USD
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -62,6 +68,11 @@ class MainController(rpc: NodeRPCConnection) {
         return ResponseEntity.ok(proxy.vaultQueryBy<Asset>().states)
     }
 
+    @GetMapping(value = [ "transfers" ], produces = [APPLICATION_JSON_VALUE])
+    fun getTransfers() : ResponseEntity<List<StateAndRef<AssetTransfer>>> {
+        return ResponseEntity.ok(proxy.vaultQueryBy<AssetTransfer>().states)
+    }
+
     /**
      * Initiates a flow to agree an IOU between two parties.
      *
@@ -78,7 +89,7 @@ class MainController(rpc: NodeRPCConnection) {
     fun createTransaction(request: HttpServletRequest): ResponseEntity<String> {
 
         val cusip = request.getParameter("cusipValue")
-        val assetName = request.getParameter("transactionAssetName")
+        val assetName  = request.getParameter("transactionAssetName")
         val purchaseCost = request.getParameter("transactionPurchaseCost").toInt()
 
 
@@ -104,15 +115,15 @@ class MainController(rpc: NodeRPCConnection) {
         }
     }
 
-    @PostMapping(value = [ "create-transsfer" ], produces = [ TEXT_PLAIN_VALUE ], headers =  ["Content-Type=application/x-www-form-urlencoded"] )
+    @PostMapping(value = [ "create-transfer" ], produces = [ TEXT_PLAIN_VALUE ], headers =  ["Content-Type=application/x-www-form-urlencoded"] )
     fun createTransfer(request: HttpServletRequest): ResponseEntity<String> {
 
-        val cusip = request.getParameter("cusipValueTr")
+        val cusipTr = request.getParameter("cusipTr")
         val securityBuyer = request.getParameter("transferBuyer")
 
 
-        if(cusip == null){
-            return ResponseEntity.badRequest().body("Query parameter 'cusip' must not be null.\n")
+        if(cusipTr == null){
+            return ResponseEntity.badRequest().body("Query parameter 'cusipTr' must not be null.\n")
         }
         if(securityBuyer == null){
             return ResponseEntity.badRequest().body("Query parameter 'securityBuyer' must not be null.\n")
@@ -123,7 +134,7 @@ class MainController(rpc: NodeRPCConnection) {
         val otherParty = proxy.wellKnownPartyFromX500Name(secBuyerName) ?: return ResponseEntity.badRequest().body("Party named $secBuyerName cannot be found.\n")
 
         return try {
-            val signedTr = proxy.startTrackedFlow(::CreateAssetTransferRequestInitiatorFlow,cusip,otherParty).returnValue.getOrThrow()
+            val signedTr = proxy.startTrackedFlow(::CreateAssetTransferRequestInitiatorFlow,cusipTr,otherParty).returnValue.getOrThrow()
             ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${signedTr.id} committed to ledger.\n")
 
         } catch (ex: Throwable) {
@@ -131,6 +142,69 @@ class MainController(rpc: NodeRPCConnection) {
             ResponseEntity.badRequest().body(ex.message!!)
         }
     }
+
+    @PostMapping(value = [ "create-confirm" ], produces = [ TEXT_PLAIN_VALUE ], headers =  ["Content-Type=application/x-www-form-urlencoded"] )
+    fun createConfirm(request: HttpServletRequest): ResponseEntity<String> {
+
+        val linearId = request.getParameter("linearId")
+        val clearingHouse = request.getParameter("clearingHouse")
+
+
+        if(linearId == null){
+            return ResponseEntity.badRequest().body("Query parameter 'cusipTr' must not be null.\n")
+        }
+        if(clearingHouse == null){
+            return ResponseEntity.badRequest().body("Query parameter 'securityBuyer' must not be null.\n")
+        }
+        //val partyX500Name = CordaX500Name.parse(partyName)
+
+        val clearingHouseName=CordaX500Name.parse(clearingHouse)
+        val cleHouse = proxy.wellKnownPartyFromX500Name(clearingHouseName) ?: return ResponseEntity.badRequest().body("Party named $clearingHouseName cannot be found.\n")
+
+        return try {
+            val signedTr = proxy.startTrackedFlow(::ConfirmAssetTransferRequestInitiatorFlow,linearId,cleHouse).returnValue.getOrThrow()
+            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${signedTr.id} committed to ledger.\n")
+
+        } catch (ex: Throwable) {
+            logger.error(ex.message, ex)
+            ResponseEntity.badRequest().body(ex.message!!)
+        }
+    }
+
+    @PostMapping(value = [ "create-issue" ], produces = [ TEXT_PLAIN_VALUE ], headers =  ["Content-Type=application/x-www-form-urlencoded"] )
+    fun createIssue(request: HttpServletRequest): ResponseEntity<String> {
+
+        val amount = request.getParameter("amount").toInt()
+        val issuerBank = request.getParameter("issuerBank").toByte()
+        val notary = request.getParameter("notary")
+
+
+        if(amount < 0){
+            return ResponseEntity.badRequest().body("Query parameter 'amount' must not be null.\n")
+        }
+        if(issuerBank <0){
+            return ResponseEntity.badRequest().body("Query parameter 'issuerBank' must not be null.\n")
+        }
+        if(notary == null){
+            return ResponseEntity.badRequest().body("Query parameter 'notary' must not be null.\n")
+        }
+        //val partyX500Name = CordaX500Name.parse(partyName)
+
+        val isBank = OpaqueBytes.of(issuerBank)
+
+        val notaryName=CordaX500Name.parse(notary)
+        val notaryIdent = proxy.wellKnownPartyFromX500Name(notaryName) ?: return ResponseEntity.badRequest().body("Party named $notaryName cannot be found.\n")
+
+        return try {
+            val signedTr = proxy.startTrackedFlow(::CashIssueFlow,AMOUNT(amount,USD),isBank,notaryIdent).returnValue.getOrThrow()
+            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${signedTr} committed to ledger.\n")
+
+        } catch (ex: Throwable) {
+            logger.error(ex.message, ex)
+            ResponseEntity.badRequest().body(ex.message!!)
+        }
+    }
+
 
 
     /**

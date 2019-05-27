@@ -22,27 +22,19 @@
         <div class="navbar-header">
             <a class="navbar-brand" href="#">{{idpApp.thisNode}}</a>
         </div>
-        <button ng-click="idpApp.openModal()" type="button" class="btn btn-primary navbar-btn">Create Invoice</button>
-        <button ng-click="idpApp.openTransfer()" type="button" class="btn btn-primary navbar-btn">Create Transfer</button>
+        <button ng-click="idpApp.openIssueCash()" type="button" class="btn btn-primary navbar-btn">Issue cash</button>
+        <button ng-click="idpApp.openConfirmTransfer()" type="button" class="btn btn-primary navbar-btn">Confirm Transfer</button>
     </div>
 </nav>
-<script type="text/ng-template" id="idpAppModal.html">
+<script type="text/ng-template" id="idpAppIssueCash.html">
     <div class="modal-header">
         <h4 class="modal-title">Create invoice</h4>
     </div>
     <form>
         <div class="modal-body">
             <div class="form-group">
-                <label for="cusip" class="control-label">Identification:</label>
-                <input type="text" ng-model="modalInstance.form.cusip" class="form-control" id="cusip">
-            </div>
-            <div class="form-group">
-                <label for="assetName" class="control-label">Invoice Item Name:</label>
-                <input type="text" ng-model="modalInstance.form.assetName" class="form-control" id="assetName">
-            </div>
-            <div class="form-group">
-                <label for="purchaseCost" class="control-label">Purchase Cost:</label>
-                <input type="text" ng-model="modalInstance.form.purchaseCost" class="form-control" id="purchaseCost">
+                <label for="amount" class="control-label">Amount:</label>
+                <input type="text" ng-model="modalIssueCash.form.amount" class="form-control" id="amount">
             </div>
 
             <div ng-show="modalInstance.formError" class="form-group">
@@ -54,8 +46,8 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button ng-click="modalInstance.cancel()" type="button" class="btn btn-default">Close</button>
-            <button ng-click="modalInstance.create()" type="button" class="btn btn-primary">Create Invoice</button>
+            <button ng-click="modalIssueCash.cancel()" type="button" class="btn btn-default">Close</button>
+            <button ng-click="modalIssueCash.create()" type="button" class="btn btn-primary">Issue Cash </button>
         </div>
     </form>
 </script>
@@ -65,20 +57,20 @@
     </div>
 </script>
 
-<script type="text/ng-template" id="idpAppModalTransfer.html">
+<script type="text/ng-template" id="idpAppConfirmTransfer.html">
     <div class="modal-header">
-        <h4 class="modal-title">Create Transfer</h4>
+        <h4 class="modal-title">Pay Invoice</h4>
     </div>
     <form>
         <div class="modal-body">
             <div class="form-group">
-                <label for="cusipTr" class="control-label">Identification:</label>
-                <input type="text" ng-model="modalTransfer.form.cusipTr" class="form-control" id="cusipTr">
+                <label for="linearId" class="control-label">Linear ID:</label>
+                <input type="text" ng-model="modalConfirm.form.linearId" class="form-control" id="linearId">
             </div>
         </div>
         <div class="modal-footer">
-            <button ng-click="modalTransfer.cancel()" type="button" class="btn btn-default">Cancel</button>
-            <button ng-click="modalTransfer.create()" type="button" class="btn btn-primary">Create Transfer</button>
+            <button ng-click="modalConfirm.cancel()" type="button" class="btn btn-default">Cancel</button>
+            <button ng-click="modalConfirm.create()" type="button" class="btn btn-primary">Pay</button>
         </div>
     </form>
 </script>
@@ -96,7 +88,7 @@
                     </div>
                 </div>
                 <div>
-                    <div ng-repeat="invoice in idpApp.transactions" class="panel panel-default">
+                    <div ng-repeat="transfer in idpApp.transfers" class="panel panel-default">
                         <div class="panel-body">
                             <ul>
                                 <li>Identification: {{invoice.cusip}}</li>

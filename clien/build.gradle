@@ -107,5 +107,5 @@ task runPartySellerServer(type: JavaExec, dependsOn: jar) {
 task runPartyBuyerServer(type: JavaExec, dependsOn: jar) {
     classpath = sourceSets.main.runtimeClasspath
     main = 'com.template.cordapp.server.ServerKt'
-    args '--server.port=50006', '--config.rpc.host=localhost', '--config.rpc.port=10006', '--config.rpc.username=user1', '--config.rpc.password=test'
+    args '--server.port=50009', '--config.rpc.host=localhost', '--config.rpc.port=10009', '--config.rpc.username=user1', '--config.rpc.password=test'
 }
