@@ -5,18 +5,25 @@ import com.template.cordapp.state.AssetTransfer
 import com.template.cordapp.seller.flows.CreateAssetStateFlow.Initiator
 import com.template.cordapp.seller.flows.CreateAssetTransferRequestInitiatorFlow
 import com.template.cordapp.buyer.flows.ConfirmAssetTransferRequestInitiatorFlow
+import com.template.cordapp.buyer.flows.CashIssueFlowa
 import net.corda.core.utilities.OpaqueBytes
+import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.startTrackedFlow
+import net.corda.core.messaging.startFlow
 import net.corda.core.messaging.vaultQueryBy
 import net.corda.core.utilities.getOrThrow
 import net.corda.finance.AMOUNT
-import net.corda.finance.flows.CashIssueFlow
+import net.corda.core.contracts.Amount
+//import net.corda.finance.flows.CashIssueFlow
+import net.corda.finance.contracts.asset.Cash.State
 import net.corda.core.identity.Party
 import net.corda.core.internal.declaredField
 import net.corda.core.serialization.serialize
 import net.corda.finance.USD
+import net.corda.finance.flows.AbstractCashFlow
+import net.corda.finance.flows.CashIssueFlow
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.*
@@ -72,6 +79,10 @@ class MainController(rpc: NodeRPCConnection) {
     fun getTransfers() : ResponseEntity<List<StateAndRef<AssetTransfer>>> {
         return ResponseEntity.ok(proxy.vaultQueryBy<AssetTransfer>().states)
     }
+    @GetMapping(value = [ "cash" ], produces = [APPLICATION_JSON_VALUE])
+    fun getCash() : ResponseEntity<List<StateAndRef<State>>> {
+        return ResponseEntity.ok(proxy.vaultQueryBy<State>().states)
+    }
 
     /**
      * Initiates a flow to agree an IOU between two parties.
@@ -107,7 +118,7 @@ class MainController(rpc: NodeRPCConnection) {
 
         return try {
             val signedTx = proxy.startTrackedFlow(::Initiator,cusip, assetName, AMOUNT(purchaseCost,USD)).returnValue.getOrThrow()
-            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${signedTx.id} committed to ledger.\n")
+            ResponseEntity.status(HttpStatus.CREATED).body("Invoice id ${signedTx.id} was successfully created!.\n")
 
         } catch (ex: Throwable) {
             logger.error(ex.message, ex)
@@ -135,7 +146,7 @@ class MainController(rpc: NodeRPCConnection) {
 
         return try {
             val signedTr = proxy.startTrackedFlow(::CreateAssetTransferRequestInitiatorFlow,cusipTr,otherParty).returnValue.getOrThrow()
-            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${signedTr.id} committed to ledger.\n")
+            ResponseEntity.status(HttpStatus.CREATED).body("Transfer id ${signedTr.id} was successfully sent to buyer!.\n")
 
         } catch (ex: Throwable) {
             logger.error(ex.message, ex)
@@ -149,7 +160,7 @@ class MainController(rpc: NodeRPCConnection) {
         val linearId = request.getParameter("linearId")
         val clearingHouse = request.getParameter("clearingHouse")
 
-
+        val linId = UniqueIdentifier.fromString(linearId)
         if(linearId == null){
             return ResponseEntity.badRequest().body("Query parameter 'cusipTr' must not be null.\n")
         }
@@ -162,8 +173,8 @@ class MainController(rpc: NodeRPCConnection) {
         val cleHouse = proxy.wellKnownPartyFromX500Name(clearingHouseName) ?: return ResponseEntity.badRequest().body("Party named $clearingHouseName cannot be found.\n")
 
         return try {
-            val signedTr = proxy.startTrackedFlow(::ConfirmAssetTransferRequestInitiatorFlow,linearId,cleHouse).returnValue.getOrThrow()
-            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${signedTr.id} committed to ledger.\n")
+            val confirmedTr = proxy.startTrackedFlow(::ConfirmAssetTransferRequestInitiatorFlow,linId,cleHouse).returnValue.getOrThrow()
+            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${confirmedTr.id} is conirmed by Buyer. Waiting for Clearing house verifcation\n")
 
         } catch (ex: Throwable) {
             logger.error(ex.message, ex)
@@ -171,15 +182,15 @@ class MainController(rpc: NodeRPCConnection) {
         }
     }
 
-    @PostMapping(value = [ "create-issue" ], produces = [ TEXT_PLAIN_VALUE ], headers =  ["Content-Type=application/x-www-form-urlencoded"] )
+    @PostMapping( value = [ "create-issue" ], produces = [ TEXT_PLAIN_VALUE ], headers =  ["Content-Type=application/x-www-form-urlencoded"])
     fun createIssue(request: HttpServletRequest): ResponseEntity<String> {
 
-        val amount = request.getParameter("amount").toInt()
+        val amount = request.getParameter("amount")
         val issuerBank = request.getParameter("issuerBank").toByte()
         val notary = request.getParameter("notary")
 
 
-        if(amount < 0){
+        if(amount == null){
             return ResponseEntity.badRequest().body("Query parameter 'amount' must not be null.\n")
         }
         if(issuerBank <0){
@@ -188,7 +199,7 @@ class MainController(rpc: NodeRPCConnection) {
         if(notary == null){
             return ResponseEntity.badRequest().body("Query parameter 'notary' must not be null.\n")
         }
-        //val partyX500Name = CordaX500Name.parse(partyName)
+        val am=Amount.parseCurrency(amount)
 
         val isBank = OpaqueBytes.of(issuerBank)
 
@@ -196,8 +207,8 @@ class MainController(rpc: NodeRPCConnection) {
         val notaryIdent = proxy.wellKnownPartyFromX500Name(notaryName) ?: return ResponseEntity.badRequest().body("Party named $notaryName cannot be found.\n")
 
         return try {
-            val signedTr = proxy.startTrackedFlow(::CashIssueFlow,AMOUNT(amount,USD),isBank,notaryIdent).returnValue.getOrThrow()
-            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${signedTr} committed to ledger.\n")
+            val cashTx = proxy.startTrackedFlow(::CashIssueFlow,am,isBank,notaryIdent).returnValue.getOrThrow()
+            ResponseEntity.status(HttpStatus.CREATED).body("Money was successfully issued")
 
         } catch (ex: Throwable) {
             logger.error(ex.message, ex)

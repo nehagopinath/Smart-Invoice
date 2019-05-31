@@ -14,7 +14,6 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0-rc.1/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.2.0/ui-bootstrap-tpls.min.js"></script>
     <script src="js/angular-module.js"></script>
-    <meta http-equiv="refresh" content="20">
 </head>
 <body ng-app="idpModule" ng-controller="IdpController as idpApp">
 <nav class="navbar navbar-default">
@@ -99,10 +98,46 @@
                     <div ng-repeat="invoice in idpApp.transactions" class="panel panel-default">
                         <div class="panel-body">
                             <ul>
-                                <li>Identification: {{invoice.cusip}}</li>
+                                <li>Invoice Identifier: {{invoice.cusip}}</li>
                                 <li>Invoice Item Name: {{invoice.assetName}}</li>
                                 <li>Value: {{invoice.purchaseCost}}</li>
-                                <li>Owner: {{invoice.owner}}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            My Transfers:
+                        </h4>
+                    </div>
+                </div>
+                <div>
+                    <div ng-repeat="transfer in idpApp.transfers" class="panel panel-default">
+                        <div class="panel-body">
+                            <ul>
+                                <li>Invoice Identifier: {{transfer.asset.cusip}}</li>
+                                <li>Status: {{transfer.status}}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            My Balance:
+                        </h4>
+                    </div>
+                </div>
+                <div>
+                    <div ng-repeat="cash in idpApp.cash" class="panel panel-default">
+                        <div class="panel-body">
+                            <ul>
+                                <li>Cash Income: {{cash.amount}}</li>
                             </ul>
                         </div>
                     </div>

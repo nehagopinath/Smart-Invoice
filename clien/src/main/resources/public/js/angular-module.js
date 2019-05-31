@@ -59,7 +59,7 @@ app.controller('IdpController', function($http, $location, $uibModal) {
                             peers: () => peers
                         }
                     });
-                     modalTransfer.result.then(() => {}, () => {});
+                     modalIssueCash.result.then(() => {}, () => {});
                   };
 
         idpApp.openConfirmTransfer = () => {
@@ -74,7 +74,7 @@ app.controller('IdpController', function($http, $location, $uibModal) {
                         }
                     });
 
-                    modalTransfer.result.then(() => {}, () => {});
+                    modalConfirm.result.then(() => {}, () => {});
                 };
 
     idpApp.getTransactions = () => $http.get(apiBaseURL + "transactions")
@@ -86,6 +86,10 @@ app.controller('IdpController', function($http, $location, $uibModal) {
              .then((response) => idpApp.transfers = Object.keys(response.data)
                  .map((key) => response.data[key].state.data)
                  .reverse());
+       idpApp.getCash = () => $http.get(apiBaseURL + "cash")
+               .then((response) => idpApp.cash = Object.keys(response.data)
+                     .map((key) => response.data[key].state.data)
+                      .reverse());
 
     /*idpApp.getMyTransactions = () => $http.get(apiBaseURL + "my-transactions")
         .then((response) => idpApp.mytransactions = Object.keys(response.data)
@@ -93,6 +97,8 @@ app.controller('IdpController', function($http, $location, $uibModal) {
             .reverse());*/
 
     idpApp.getTransactions();
+    idpApp.getTransfers();
+    idpApp.getCash();
     //idpApp.getMyTransactions();
 });
 
@@ -282,34 +288,43 @@ app.controller('ModalIssueCashCtrl', function ($http, $location, $uibModalInstan
     modalIssueCash.form = {};
     modalIssueCash.formError = false;
 
+
+
         // Validates and sends IOU.
-       modalIssueCash.create = function validateAndSendTransaction() {
+       modalIssueCash.create = () => {
             if (modalIssueCash.form.value <= 0) {
                 modalIssueCash.formError = true;
             } else {
                 modalIssueCash.formError = false;
+
+                 /*amount : modalIssueCash.form.amount;
+                 issuerBank : "1234";
+                 notary : "O=Notary,L=New York,C=US";*/
+
                 $uibModalInstance.close();
 
-                 let CREATE_ISSUE_PATH = apiBaseURL + "create-issue"
+                let CREATE_ISSUE_PATH = apiBaseURL + 'create-issue';
 
-                                let createIssueData = $.param({
-                                    amount : modalIssueCash.form.amount,
-                                    issuerBank : "1234"
-                                    notary : "O=Notary,L=New York,C=US"
+                let createIssueData = $.param({
+                       amount : modalIssueCash.form.amount,
+                       issuerBank : "1234",
+                       notary : "O=Notary,L=New York,C=US"
+                 });
 
-                                });
+                 let createIssueHeaders = {
+                         headers : {
+                             "Content-Type": "application/x-www-form-urlencoded"
+                               }
+                       };
 
-                                let createIssueHeaders = {
-                                    headers : {
-                                        "Content-Type": "application/x-www-form-urlencoded"
-                                    }
-                                };
+                  $http.post(CREATE_ISSUE_PATH,createIssueData,createIssueHeaders).then(
+                                                   modalIssueCash.displayMessage,
+                                                   modalIssueCash.displayMessage
+                                                );
+
 
                                 // Create Transaction and handles success / fail responses.
-                                $http.post(CREATE_ISSUE_PATH, createIssueData, createIssueHeaders).then(
-                                    modalIssueCash.displayMessage,
-                                    modalIssueCash.displayMessage
-                                );
+
             }
         };
 
