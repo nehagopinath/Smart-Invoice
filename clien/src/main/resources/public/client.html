@@ -23,8 +23,16 @@
         </div>
         <button ng-click="idpApp.openIssueCash()" type="button" class="btn btn-primary navbar-btn">Issue cash</button>
         <button ng-click="idpApp.openConfirmTransfer()" type="button" class="btn btn-primary navbar-btn">Confirm Transfer</button>
+        <button type="submit"  onClick="refreshPage()" style="float: right;"><span class="glyphicon glyphicon-refresh"></span></button>
     </div>
 </nav>
+
+<script>
+function refreshPage(){
+    window.location.reload();
+}
+</script>
+
 <script type="text/ng-template" id="idpAppIssueCash.html">
     <div class="modal-header">
         <h4 class="modal-title">Issue Cash</h4>

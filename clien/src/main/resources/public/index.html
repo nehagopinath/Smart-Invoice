@@ -23,8 +23,22 @@
         </div>
         <button ng-click="idpApp.openModal()" type="button" class="btn btn-primary navbar-btn">Create Invoice</button>
         <button ng-click="idpApp.openTransfer()" type="button" class="btn btn-primary navbar-btn">Create Transfer</button>
+        <button type="submit"  onClick="refreshPage()" style="float: right;"><span class="glyphicon glyphicon-refresh"></span></button>
     </div>
 </nav>
+
+<script>
+function refreshPage(){
+    window.location.reload();
+}
+</script>
+
+<script>
+$scope.reload = function()
+{
+   location.reload();
+}
+</script>
 <script type="text/ng-template" id="idpAppModal.html">
     <div class="modal-header">
         <h4 class="modal-title">Create invoice</h4>
