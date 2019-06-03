@@ -69,10 +69,11 @@
         </div>
         <div class="modal-footer">
             <button ng-click="modalConfirm.cancel()" type="button" class="btn btn-default">Cancel</button>
-            <button ng-click="modalConfirm.create()" type="button" class="btn btn-primary">Confirm</button>
+            <button ng-click="modalConfirm.create();modalConfirm.clear();" type="button" class="btn btn-primary">Confirm</button>
         </div>
     </form>
 </script>
+
 
 <div class="row">
     <div class="col-md-1"></div>

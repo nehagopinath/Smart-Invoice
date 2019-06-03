@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IDP Sample Transfer</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0-rc.1/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.2.0/ui-bootstrap-tpls.min.js"></script>
+    <script src="js/angular-module.js"></script>
+</head>
+<body ng-app="idpModule" ng-controller="IdpController as idpApp">
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">{{idpApp.thisNode}}</a>
+        </div>
+        <button ng-click="idpApp.openClearTransfer()" type="button" class="btn btn-primary navbar-btn">Verify</button>
+    </div>
+</nav>
+
+
+<script type="text/ng-template" id="idpAppClear.html">
+    <div class="modal-header">
+        <h4 class="modal-title">Clearing house</h4>
+    </div>
+    <form>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="linearrId" class="control-label">Linear ID:</label>
+                <input type="text" ng-model="modalClear.form.linearrId" class="form-control" id="linearrId">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button ng-click="modalClear.cancel()" type="button" class="btn btn-default">Cancel</button>
+            <button ng-click="modalClear.create()" type="button" class="btn btn-primary">Confirm</button>
+        </div>
+    </form>
+</script>
+
+
+
+
+<div class="row">
+    <div class="col-md-1"></div>
+    <div class="col-md-10">
+        <div class="panel-group" id="accordion3">
+            <div class="panel">
+                <div class="panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            My Transfers:
+                        </h4>
+                    </div>
+                </div>
+                <div>
+                    <div ng-repeat="transfer in idpApp.transfers" class="panel panel-default">
+                        <div class="panel-body">
+                            <ul>
+                                <li>Invoice identifier: {{transfer.asset.cusip}}</li>
+                                <li>Invoice Confirmation Id: {{transfer.linearId.id}}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-1"></div>
+</div>
+
+</body>
+</html>

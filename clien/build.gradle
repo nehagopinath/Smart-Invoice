@@ -109,3 +109,10 @@ task runPartyBuyerServer(type: JavaExec, dependsOn: jar) {
     main = 'com.template.cordapp.server.ServerKt'
     args '--server.port=50009', '--config.rpc.host=localhost', '--config.rpc.port=10009', '--config.rpc.username=user1', '--config.rpc.password=test'
 }
+
+
+task runPartyClearServer(type: JavaExec, dependsOn: jar) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.template.cordapp.server.ServerKt'
+    args '--server.port=50012', '--config.rpc.host=localhost', '--config.rpc.port=10012', '--config.rpc.username=user1', '--config.rpc.password=test'
+}

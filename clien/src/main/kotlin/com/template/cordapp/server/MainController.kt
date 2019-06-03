@@ -6,6 +6,7 @@ import com.template.cordapp.seller.flows.CreateAssetStateFlow.Initiator
 import com.template.cordapp.seller.flows.CreateAssetTransferRequestInitiatorFlow
 import com.template.cordapp.buyer.flows.ConfirmAssetTransferRequestInitiatorFlow
 import com.template.cordapp.buyer.flows.CashIssueFlowa
+import com.template.cordapp.clearinghouse.flows.AssetSettlementInitiatorFlow
 import net.corda.core.utilities.OpaqueBytes
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.contracts.StateAndRef
@@ -30,6 +31,8 @@ import org.springframework.http.MediaType.*
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import java.util.Timer
+import kotlin.concurrent.schedule
 
 val SERVICE_NAMES = listOf("Notary", "Network Map Service")
 
@@ -175,7 +178,27 @@ class MainController(rpc: NodeRPCConnection) {
         return try {
             val confirmedTr = proxy.startTrackedFlow(::ConfirmAssetTransferRequestInitiatorFlow,linId,cleHouse).returnValue.getOrThrow()
             ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${confirmedTr.id} is conirmed by Buyer. Waiting for Clearing house verifcation\n")
+        } catch (ex: Throwable) {
+            logger.error(ex.message, ex)
+            ResponseEntity.badRequest().body(ex.message!!)
+        }
 
+    }
+
+    @PostMapping(value = [ "create-clear" ], produces = [ TEXT_PLAIN_VALUE ], headers =  ["Content-Type=application/x-www-form-urlencoded"] )
+    fun createClear(request: HttpServletRequest): ResponseEntity<String> {
+
+        val linearrId = request.getParameter("linearrId")
+
+
+        val linrId = UniqueIdentifier.fromString(linearrId)
+        if (linearrId == null) {
+            return ResponseEntity.badRequest().body("Query parameter 'linrId' must not be null.\n")
+        }
+
+        return try {
+            val clearTr = proxy.startTrackedFlow(::AssetSettlementInitiatorFlow, linrId).returnValue.getOrThrow()
+            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${clearTr.id} is TRANSFERED\n")
         } catch (ex: Throwable) {
             logger.error(ex.message, ex)
             ResponseEntity.badRequest().body(ex.message!!)

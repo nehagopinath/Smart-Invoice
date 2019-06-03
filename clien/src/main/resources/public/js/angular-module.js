@@ -77,6 +77,21 @@ app.controller('IdpController', function($http, $location, $uibModal) {
                     modalConfirm.result.then(() => {}, () => {});
                 };
 
+             idpApp.openClearTransfer = () => {
+                               const modalConfirm = $uibModal.open({
+                                   templateUrl: 'idpAppClear.html',
+                                   controller: 'ModalClearCtrl',
+                                   controllerAs: 'modalClear',
+                                   resolve: {
+                                       idpApp: () => idpApp,
+                                       apiBaseURL: () => apiBaseURL,
+                                       peers: () => peers
+                                   }
+                               });
+
+                               modalConfirm.result.then(() => {}, () => {});
+                           };
+
     idpApp.getTransactions = () => $http.get(apiBaseURL + "transactions")
         .then((response) => idpApp.transactions = Object.keys(response.data)
             .map((key) => response.data[key].state.data)
@@ -260,6 +275,8 @@ app.controller('ConfirmCtrl', function ($http, $location, $uibModalInstance, $ui
             }
         };
 
+
+
     modalConfirm.displayMessage = (message) => {
         const modalInstanceTwo = $uibModal.open({
             templateUrl: 'messageContent.html',
@@ -346,6 +363,73 @@ app.controller('ModalIssueCashCtrl', function ($http, $location, $uibModalInstan
     // Validate the Transaction. ToDo See buyer stuff
     function invalidFormInput() {
         return (modalIssueCash.form.amount === undefined);
+    }
+});
+
+app.controller('ModalClearCtrl', function ($http, $location, $uibModalInstance, $uibModal, idpApp, apiBaseURL, peers) {
+    const modalClear = this;
+
+    modalClear.peers = peers;
+    modalClear.form = {};
+    modalClear.formError = false;
+
+
+
+        // Validates and sends IOU.
+        modalClear.create = () => {
+            if (modalClear.form.value <= 0) {
+                modalClear.formError = true;
+            } else {
+                 modalClear.formError = false;
+
+                 /*amount : modalIssueCash.form.amount;
+                 issuerBank : "1234";
+                 notary : "O=Notary,L=New York,C=US";*/
+
+                $uibModalInstance.close();
+
+                 let CREATE_CLEAR_PATH = apiBaseURL + "create-clear"
+
+                                             let createClearData = $.param({
+                                                   linearrId: modalClear.form.linearrId,
+                                                   });
+
+                                              let createClearHeaders = {
+                                                    headers : {
+                                                          "Content-Type": "application/x-www-form-urlencoded"
+                                                         }
+                                                     };
+
+                                                        // Create Transaction and handles success / fail responses.
+                                             $http.post(CREATE_CLEAR_PATH, createClearData, createClearHeaders).then(
+                                                    modalClear.displayMessage,
+                                                    modalClear.displayMessage
+                                                        );
+
+
+                                // Create Transaction and handles success / fail responses.
+
+            }
+        };
+
+    modalClear.displayMessage = (message) => {
+        const modalInstanceTwo = $uibModal.open({
+            templateUrl: 'messageContent.html',
+            controller: 'messageCtrl',
+            controllerAs: 'modalInstanceTwo',
+            resolve: { message: () => message }
+        });
+
+        // No behaviour on close / dismiss.
+        modalInstanceTwo.result.then(() => {}, () => {});
+    };
+
+    // Close create Transaction modal dialogue.
+    modalClear.cancel = () => $uibModalInstance.dismiss();
+
+    // Validate the Transaction. ToDo See buyer stuff
+    function invalidFormInput() {
+        return (modalClear.form.linerrId === undefined);
     }
 });
 
