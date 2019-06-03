@@ -13,10 +13,13 @@ app.controller('IdpController', function($http, $location, $uibModal) {
     const apiBaseURL = "/api/example/";
     let peers = [];
 
+    //Gets node name
     $http.get(apiBaseURL + "me").then((response) => idpApp.thisNode = response.data.me);
 
+    //Gets node peers
     $http.get(apiBaseURL + "peers").then((response) => peers = response.data.peers);
 
+    //Opens modal to enter Transaction data
     idpApp.openModal = () => {
         const modalInstance = $uibModal.open({
             templateUrl: 'idpAppModal.html',
@@ -32,7 +35,7 @@ app.controller('IdpController', function($http, $location, $uibModal) {
     };
 
 
-
+         //Opens modal to enter Transfer data
        idpApp.openTransfer = () => {
             const modalTransfer = $uibModal.open({
                 templateUrl: 'idpAppModalTransfer.html',
@@ -48,6 +51,7 @@ app.controller('IdpController', function($http, $location, $uibModal) {
             modalTransfer.result.then(() => {}, () => {});
         };
 
+         //Opens modal to enter data for Cash issuing
         idpApp.openIssueCash = () => {
                     const modalIssueCash = $uibModal.open({
                         templateUrl: 'idpAppIssueCash.html',
@@ -62,6 +66,7 @@ app.controller('IdpController', function($http, $location, $uibModal) {
                      modalIssueCash.result.then(() => {}, () => {});
                   };
 
+         //Opens modal to enter data for Confirming Transfer from Buyer side
         idpApp.openConfirmTransfer = () => {
                     const modalConfirm = $uibModal.open({
                         templateUrl: 'idpAppConfirmTransfer.html',
@@ -76,7 +81,7 @@ app.controller('IdpController', function($http, $location, $uibModal) {
 
                     modalConfirm.result.then(() => {}, () => {});
                 };
-
+            //Opens modal to enter Clearing house confirmation
              idpApp.openClearTransfer = () => {
                                const modalConfirm = $uibModal.open({
                                    templateUrl: 'idpAppClear.html',
@@ -91,30 +96,26 @@ app.controller('IdpController', function($http, $location, $uibModal) {
 
                                modalConfirm.result.then(() => {}, () => {});
                            };
-
+    //Gets transactions to display them on screen
     idpApp.getTransactions = () => $http.get(apiBaseURL + "transactions")
         .then((response) => idpApp.transactions = Object.keys(response.data)
             .map((key) => response.data[key].state.data)
             .reverse());
-
+     //Gets transfers to display them on screen
      idpApp.getTransfers = () => $http.get(apiBaseURL + "transfers")
              .then((response) => idpApp.transfers = Object.keys(response.data)
                  .map((key) => response.data[key].state.data)
                  .reverse());
+       //Gets Cash statements to display them on screen
        idpApp.getCash = () => $http.get(apiBaseURL + "cash")
                .then((response) => idpApp.cash = Object.keys(response.data)
                      .map((key) => response.data[key].state.data)
                       .reverse());
 
-    /*idpApp.getMyTransactions = () => $http.get(apiBaseURL + "my-transactions")
-        .then((response) => idpApp.mytransactions = Object.keys(response.data)
-            .map((key) => response.data[key].state.data)
-            .reverse());*/
-
     idpApp.getTransactions();
     idpApp.getTransfers();
     idpApp.getCash();
-    //idpApp.getMyTransactions();
+
 });
 
 app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstance, $uibModal, idpApp, apiBaseURL, peers) {
@@ -124,7 +125,7 @@ app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstanc
     modalInstance.form = {};
     modalInstance.formError = false;
 
-        // Validates and sends IOU.
+        // Validates and sends Transaction.
         modalInstance.create = function validateAndSendTransaction() {
             if (modalInstance.form.value <= 0) {
                 modalInstance.formError = true;
@@ -169,13 +170,13 @@ app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstanc
     // Close create Transaction modal dialogue.
     modalInstance.cancel = () => $uibModalInstance.dismiss();
 
-    // Validate the Transaction. ToDo See buyer stuff
+    // Validate the Transaction.
     function invalidFormInput() {
         return (modalInstance.form.cusip === undefined);
     }
 });
 
- //isNaN(modalInstance.form.purchaseCost) ||
+
 // Controller for success/fail modal dialogue.
 app.controller('messageCtrl', function ($uibModalInstance, message) {
     const modalInstanceTwo = this;
@@ -189,7 +190,7 @@ app.controller('TransferCtrl', function ($http, $location, $uibModalInstance, $u
     modalTransfer.form = {};
     modalTransfer.formError = false;
 
-        // Validates and sends IOU.
+        // Validates and sends Transfer.
         modalTransfer.create = function validateAndSendTransaction() {
             if (modalTransfer.form.value <= 0) {
                 modalTransfer.formError = true;
@@ -210,7 +211,7 @@ app.controller('TransferCtrl', function ($http, $location, $uibModalInstance, $u
                                     }
                                 };
 
-                                // Create Transaction and handles success / fail responses.
+                                // Creates Transfer and handles success / fail responses.
                                 $http.post(CREATE_TRANSFER_PATH, createTransferData, createTransferHeaders).then(
                                     modalTransfer.displayMessage,
                                     modalTransfer.displayMessage
@@ -307,16 +308,12 @@ app.controller('ModalIssueCashCtrl', function ($http, $location, $uibModalInstan
 
 
 
-        // Validates and sends IOU.
+       // Validates and sends Transfer confirmation.
        modalIssueCash.create = () => {
             if (modalIssueCash.form.value <= 0) {
                 modalIssueCash.formError = true;
             } else {
                 modalIssueCash.formError = false;
-
-                 /*amount : modalIssueCash.form.amount;
-                 issuerBank : "1234";
-                 notary : "O=Notary,L=New York,C=US";*/
 
                 $uibModalInstance.close();
 
@@ -375,16 +372,13 @@ app.controller('ModalClearCtrl', function ($http, $location, $uibModalInstance, 
 
 
 
-        // Validates and sends IOU.
+        // Runs Clearing house validation
         modalClear.create = () => {
             if (modalClear.form.value <= 0) {
                 modalClear.formError = true;
             } else {
                  modalClear.formError = false;
 
-                 /*amount : modalIssueCash.form.amount;
-                 issuerBank : "1234";
-                 notary : "O=Notary,L=New York,C=US";*/
 
                 $uibModalInstance.close();
 
@@ -424,12 +418,12 @@ app.controller('ModalClearCtrl', function ($http, $location, $uibModalInstance, 
         modalInstanceTwo.result.then(() => {}, () => {});
     };
 
-    // Close create Transaction modal dialogue.
+    // Close create Clearing house modal dialogue.
     modalClear.cancel = () => $uibModalInstance.dismiss();
 
-    // Validate the Transaction. ToDo See buyer stuff
+    // Validate
     function invalidFormInput() {
-        return (modalClear.form.linerrId === undefined);
+        return (modalClear.form.linearrId === undefined);
     }
 });
 
