@@ -83,7 +83,7 @@ app.controller('IdpController', function($http, $location, $uibModal) {
                 };
             //Opens modal to enter Clearing house confirmation
              idpApp.openClearTransfer = () => {
-                               const modalConfirm = $uibModal.open({
+                               const modalClear = $uibModal.open({
                                    templateUrl: 'idpAppClear.html',
                                    controller: 'ModalClearCtrl',
                                    controllerAs: 'modalClear',
@@ -94,7 +94,7 @@ app.controller('IdpController', function($http, $location, $uibModal) {
                                    }
                                });
 
-                               modalConfirm.result.then(() => {}, () => {});
+                               modalClear.result.then(() => {}, () => {});
                            };
     //Gets transactions to display them on screen
     idpApp.getTransactions = () => $http.get(apiBaseURL + "transactions")
@@ -309,7 +309,7 @@ app.controller('ModalIssueCashCtrl', function ($http, $location, $uibModalInstan
 
 
        // Validates and sends Transfer confirmation.
-       modalIssueCash.create = () => {
+       modalIssueCash.create = function validateAndSendTransaction(){
             if (modalIssueCash.form.value <= 0) {
                 modalIssueCash.formError = true;
             } else {
@@ -357,7 +357,7 @@ app.controller('ModalIssueCashCtrl', function ($http, $location, $uibModalInstan
     // Close create Transaction modal dialogue.
     modalIssueCash.cancel = () => $uibModalInstance.dismiss();
 
-    // Validate the Transaction. ToDo See buyer stuff
+    // Validate the Transaction.
     function invalidFormInput() {
         return (modalIssueCash.form.amount === undefined);
     }
@@ -373,7 +373,7 @@ app.controller('ModalClearCtrl', function ($http, $location, $uibModalInstance, 
 
 
         // Runs Clearing house validation
-        modalClear.create = () => {
+        modalClear.create = function validateAndSendTransaction(){
             if (modalClear.form.value <= 0) {
                 modalClear.formError = true;
             } else {
@@ -384,24 +384,21 @@ app.controller('ModalClearCtrl', function ($http, $location, $uibModalInstance, 
 
                  let CREATE_CLEAR_PATH = apiBaseURL + "create-clear"
 
-                                             let createClearData = $.param({
-                                                   linearrId: modalClear.form.linearrId,
-                                                   });
+                 let createClearData = $.param({
+                       linearId : modalClear.form.linearId
+                        });
 
-                                              let createClearHeaders = {
-                                                    headers : {
-                                                          "Content-Type": "application/x-www-form-urlencoded"
-                                                         }
-                                                     };
+                 let createClearHeaders = {
+                          headers : {
+                             "Content-Type": "application/x-www-form-urlencoded"
+                               }
+                   };
 
-                                                        // Create Transaction and handles success / fail responses.
-                                             $http.post(CREATE_CLEAR_PATH, createClearData, createClearHeaders).then(
-                                                    modalClear.displayMessage,
-                                                    modalClear.displayMessage
-                                                        );
-
-
-                                // Create Transaction and handles success / fail responses.
+                // Create Transaction and handles success / fail responses.
+                 $http.post(CREATE_CLEAR_PATH, createClearData, createClearHeaders).then(
+                             modalClear.displayMessage,
+                             modalClear.displayMessage
+                    );
 
             }
         };
@@ -423,7 +420,7 @@ app.controller('ModalClearCtrl', function ($http, $location, $uibModalInstance, 
 
     // Validate
     function invalidFormInput() {
-        return (modalClear.form.linearrId === undefined);
+        return (modalClear.form.linearId === undefined);
     }
 });
 

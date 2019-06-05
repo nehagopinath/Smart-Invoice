@@ -205,17 +205,17 @@ class MainController(rpc: NodeRPCConnection) {
     @PostMapping(value = [ "create-clear" ], produces = [ TEXT_PLAIN_VALUE ], headers =  ["Content-Type=application/x-www-form-urlencoded"] )
     fun createClear(request: HttpServletRequest): ResponseEntity<String> {
 
-        val linearrId = request.getParameter("linearrId")
+        val linearId = request.getParameter("linearId")
 
 
-        val linrId = UniqueIdentifier.fromString(linearrId)
-        if (linearrId == null) {
-            return ResponseEntity.badRequest().body("Query parameter 'linearrId' must not be null.\n")
+        val linrId = UniqueIdentifier.fromString(linearId)
+        if (linearId == null) {
+            return ResponseEntity.badRequest().body("Query parameter 'linearId' must not be null.\n")
         }
 
         return try {
             val clearTr = proxy.startTrackedFlow(::AssetSettlementInitiatorFlow, linrId).returnValue.getOrThrow()
-            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${clearTr.id} is TRANSFERED\n")
+            ResponseEntity.status(HttpStatus.CREATED).body("Verification of ${clearTr.id} is successfully COMPLETED!\n")
         } catch (ex: Throwable) {
             logger.error(ex.message, ex)
             ResponseEntity.badRequest().body(ex.message!!)
