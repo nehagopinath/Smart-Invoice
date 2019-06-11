@@ -15,13 +15,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.2.0/ui-bootstrap-tpls.min.js"></script>
     <script src="js/angular-module.js"></script>
 </head>
-<body ng-app="idpModule" ng-controller="IdpController as idpApp">
+<body ng-app="idpModule" ng-controller="IdpController as idpApp"  background="blockchain.jpg">
 <nav class="navbar navbar-default">
     <div class="container-fluid">
         <div class="navbar-header">
             <a class="navbar-brand" href="#">{{idpApp.thisNode}}</a>
         </div>
-        <button ng-click="idpApp.openIssueCash()" type="button" class="btn btn-primary navbar-btn">Issue cash</button>
         <button ng-click="idpApp.openConfirmTransfer()" type="button" class="btn btn-primary navbar-btn">Confirm Transfer</button>
         <button type="submit"  onClick="refreshPage()" style="float: right;"><span class="glyphicon glyphicon-refresh"></span></button>
     </div>
@@ -139,7 +138,7 @@ function refreshPage(){
                     <div ng-repeat="cash in idpApp.cash" class="panel panel-default">
                         <div class="panel-body">
                             <ul>
-                                <li>Balance: {{cash.amount}}</li>
+                                <li>Balance: {{cash.amount.split(' ')[0]}} USD</li>
                             </ul>
                         </div>
                     </div>

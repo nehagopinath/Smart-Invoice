@@ -15,7 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.2.0/ui-bootstrap-tpls.min.js"></script>
     <script src="js/angular-module.js"></script>
 </head>
-<body ng-app="idpModule" ng-controller="IdpController as idpApp">
+<body ng-app="idpModule" ng-controller="IdpController as idpApp" background="blockchain.jpg">
 <nav class="navbar navbar-default">
     <div class="container-fluid">
         <div class="navbar-header">
@@ -33,12 +33,6 @@ function refreshPage(){
 }
 </script>
 
-<script>
-$scope.reload = function()
-{
-   location.reload();
-}
-</script>
 <script type="text/ng-template" id="idpAppModal.html">
     <div class="modal-header">
         <h4 class="modal-title">Create invoice</h4>
@@ -148,12 +142,14 @@ $scope.reload = function()
                     </div>
                 </div>
                 <div>
-                    <div ng-repeat="cash in idpApp.cash" class="panel panel-default">
+                    <div ng-init="total = 0">
+                    <div  ng-repeat="cash in idpApp.cash"  class="panel panel-default">
                         <div class="panel-body">
                             <ul>
-                                <li>Cash Income: {{cash.amount}}</li>
+                                <li ng-init="total = total++">Cash Income: {{cash.amount.split(' ')[0]}} USD</li>
                             </ul>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>
