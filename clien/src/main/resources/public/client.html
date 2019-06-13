@@ -95,6 +95,7 @@ function refreshPage(){
                     </div>
                 </div>
                 <div>
+                    <div ng-if="idpApp.transactions.length<=0" style="color:red;">No transferred invoices currently</div>
                     <div ng-repeat="invoice in idpApp.transactions" class="panel panel-default">
                         <div class="panel-body">
                             <ul>
@@ -115,6 +116,7 @@ function refreshPage(){
                     </div>
                 </div>
                 <div>
+                    <div ng-if="idpApp.transfers.length<=0" style="color:red;">No active transfers currently</div>
                     <div ng-repeat="transfer in idpApp.transfers" class="panel panel-default">
                         <div class="panel-body">
                             <ul>
