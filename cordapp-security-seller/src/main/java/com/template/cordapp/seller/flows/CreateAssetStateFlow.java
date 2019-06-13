@@ -19,6 +19,7 @@ import java.time.Duration;
 // * Initiator flow *
 // ******************
 public class CreateAssetStateFlow {
+
     @InitiatingFlow
     @StartableByRPC
     public static class Initiator extends FlowLogic<SignedTransaction> {
