@@ -32,12 +32,12 @@ import java.util.*;
 
 public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransaction> {
 
-   private final FlowSession otherSideSession;
+    private final FlowSession otherSideSession;
 
-   public AssetSettlementResponderFlow(FlowSession otherSideSession) {
+    public AssetSettlementResponderFlow(FlowSession otherSideSession) {
 
-      this.otherSideSession = otherSideSession;
-   }
+        this.otherSideSession = otherSideSession;
+    }
 
     private final ProgressTracker.Step ADD_CASH = new ProgressTracker.Step("Add cash states");
 
@@ -48,80 +48,64 @@ public final class AssetSettlementResponderFlow extends FlowLogic<SignedTransact
             SYNC_IDENTITY
     );
 
-   @Suspendable
-   @Override
-   public SignedTransaction call() throws FlowException {
+    @Suspendable
+    @Override
+    public SignedTransaction call() throws FlowException {
 
-       progressTracker.setCurrentStep(ADD_CASH);
+        progressTracker.setCurrentStep(ADD_CASH);
 
-   /*    SignedTransaction ptx = subFlow(new ReceiveTransactionFlow(otherSideSession, false, StatesToRecord.NONE));
+        SignedTransaction ptx1 = (SignedTransaction) this.subFlow((FlowLogic) (new ReceiveTransactionFlow(this.otherSideSession, false, StatesToRecord.NONE)));
 
-       try {
-           LedgerTransaction  ltx = ptx.toLedgerTransaction(getServiceHub(), false);
-       } catch (SignatureException e) {
-           e.printStackTrace();
-       } */
+        LedgerTransaction ltx1 = null;
+        try {
+            ltx1 = ptx1.toLedgerTransaction(this.getServiceHub(), false);
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        }
 
-      SignedTransaction ptx1 = (SignedTransaction) this.subFlow((FlowLogic) (new ReceiveTransactionFlow(this.otherSideSession, false, StatesToRecord.NONE)));
+        Iterable inputState = ltx1.getInputStates();
+        Collection destinationAT = (new ArrayList());
+        Iterator instIterator = inputState.iterator();
 
-       LedgerTransaction ltx1 = null;
-       try {
-           ltx1 = ptx1.toLedgerTransaction(this.getServiceHub(), false);
-       } catch (SignatureException e) {
-           e.printStackTrace();
-       }
+        while (instIterator.hasNext()) {
+            Object o = instIterator.next();
+            if (o instanceof AssetTransfer) {
+                destinationAT.add(o);
+            }
+        }
 
-       Iterable inputState= ltx1.getInputStates();
-       Collection destinationAT = (new ArrayList());
-       Iterator instIterator = inputState.iterator();
+        AssetTransfer assetTransfer = (AssetTransfer) CollectionsKt.singleOrNull((List) destinationAT);
 
-       while (instIterator.hasNext()) {
-           Object o = instIterator.next();
-           if (o instanceof AssetTransfer) {
-               destinationAT.add(o);
-           }
-       }
+        FlowSession flowSession = this.otherSideSession;
+        UntrustworthyData<UUID> receiver = flowSession.receive(UUID.class);
+        UUID it = receiver.getFromUntrustedWorld();
 
-       //throw too many states found exception if this fails
-       AssetTransfer assetTransfer = (AssetTransfer) CollectionsKt.singleOrNull((List) destinationAT);
+        Pair AB = Cash.generateSpend(this.getServiceHub(),
+                new TransactionBuilder(ltx1.getNotary()), //soft reserve the cash state.
+                assetTransfer.getAsset().getPurchaseCost(),
+                this.getOurIdentityAndCert(),
+                assetTransfer.getSecuritySeller(), SetsKt.emptySet());
 
-       /*if (assetTransfer != null){
-           throw (new TooManyStatesFoundException("Transaction with more than one `AssetTransfer` " + "input states received from `" + this.otherSideSession.getCounterparty() + "` party"));
-       } */
+        TransactionBuilder txbWithCash = (TransactionBuilder) AB.component1();
 
-       FlowSession flowSession = this.otherSideSession;
-       UntrustworthyData<UUID> receiver = flowSession.receive(UUID.class);
-       UUID it = receiver.getFromUntrustedWorld();
+        txbWithCash.setLockId(it);
 
-       //Issue cash to security owner i.e. `Seller` party.
+        List cashSignKeys = (List) AB.component2();
 
+        SignedTransaction ptx2 = this.getServiceHub().signInitialTransaction(txbWithCash);
 
-       Pair AB = Cash.generateSpend(this.getServiceHub(),
-               new TransactionBuilder(ltx1.getNotary()), //soft reserve the cash state.
-               assetTransfer.getAsset().getPurchaseCost(),
-               this.getOurIdentityAndCert(),
-               assetTransfer.getSecuritySeller(), SetsKt.emptySet());
+        subFlow(new net.corda.confidential.IdentitySyncFlow.Send(this.otherSideSession, ptx2.getTx()));
+        subFlow((FlowLogic) (new SendTransactionFlow(this.otherSideSession, ptx2)));
 
-       TransactionBuilder txbWithCash = (TransactionBuilder) AB.component1();
+        progressTracker.setCurrentStep(SYNC_IDENTITY);
+        subFlow((FlowLogic) (new IdentitySyncFlow.Receive(this.otherSideSession)));
 
-       txbWithCash.setLockId(it);
+        SignedTransaction stx = subFlow(new SignTxFlow(this.otherSideSession));
 
-       List cashSignKeys = (List)AB.component2();
-
-       SignedTransaction ptx2 = this.getServiceHub().signInitialTransaction(txbWithCash);
-
-       subFlow(new net.corda.confidential.IdentitySyncFlow.Send(this.otherSideSession, ptx2.getTx()));
-       subFlow((FlowLogic)(new SendTransactionFlow(this.otherSideSession, ptx2)));
-
-       progressTracker.setCurrentStep(SYNC_IDENTITY);
-       subFlow((FlowLogic)(new IdentitySyncFlow.Receive(this.otherSideSession)));
-
-       SignedTransaction stx = subFlow(new SignTxFlow(this.otherSideSession));
-
-       return waitForLedgerCommit(stx.getId());
+        return waitForLedgerCommit(stx.getId());
 
 
-   }
+    }
 
 
 }

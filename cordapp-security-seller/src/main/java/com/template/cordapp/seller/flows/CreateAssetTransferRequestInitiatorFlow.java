@@ -85,13 +85,11 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
    @Suspendable
    @Override
    public SignedTransaction call() throws FlowException {
-      // We retrieve the notary identity from the network map.
+
       Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
       if (getOurIdentity().getName() == securityBuyer.getName()) throw new InvalidPartyException("Flow initiating party should not equal to Lender of Cash party.");
-      //progressTracker.setCurrentStep(INITIALISING);
 
-      //initialising
       LinkedHashMap txKeys = subFlow(new SwapIdentitiesFlow(securityBuyer));
       boolean size = txKeys.size() == 2;
       if(!size)
@@ -116,8 +114,6 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
 
       List participants = CollectionsKt.plus(participants1, anonymousCashLender);
 
-    //  UniqueIdentifier linearid = new UniqueIdentifier(cusip, UUID.randomUUID());
-
       AssetTransfer assetTransfer = new AssetTransfer(asset, anonymousMe, anonymousCashLender, null, PENDING_CONFIRMATION,participants,new UniqueIdentifier());
 
       PublicKey ourSigningKey = assetTransfer.getSecuritySeller().getOwningKey();
@@ -128,26 +124,23 @@ public class CreateAssetTransferRequestInitiatorFlow extends AbstractCreateAsset
               new AssetTransferContract.Commands.CreateRequest(),requiredSigners);
 
       progressTracker.setCurrentStep(BUILDING);
-      // We create a transaction builder and add the components.
+
       TransactionBuilder txBuilder = new TransactionBuilder(notary)
               .addOutputState(assetTransfer, AssetTransferContract.ASSET_TRANSFER_CONTRACT_ID)
               .addCommand(command)
               .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(30));
 
-      // Signing the transaction.
       progressTracker.setCurrentStep(SIGNING);
       SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
 
-      // Creating a session with the other party.
       FlowSession otherPartySession = initiateFlow(securityBuyer);
 
-      // Obtaining the counter-party's signature.
       progressTracker.setCurrentStep(COLLECTING);
       final SignedTransaction fullySignedTx = subFlow(
               new CollectSignaturesFlow(signedTx, Arrays.asList(otherPartySession),CollectSignaturesFlow.tracker()));
 
       progressTracker.setCurrentStep(FINALISING);
-      // Finalising the transaction.
+
       return subFlow(new FinalityFlow(fullySignedTx,FINALISING.childProgressTracker()));
 
 

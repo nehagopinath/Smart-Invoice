@@ -1,7 +1,6 @@
 package com.template.cordapp.clearinghouse.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.template.cordapp.common.flows.SignTxFlow;
 import com.template.cordapp.flows.AbstractConfirmAssetTransferRequestFlow;
 import net.corda.confidential.IdentitySyncFlow;
 import net.corda.core.flows.*;

@@ -94,10 +94,9 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
     public SignedTransaction call() throws FlowException {
 
         progressTracker.setCurrentStep(SWAP_IDENTITY);
-        // We retrieve the notary identity from the network map.
+
         Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
-        //Swap Identity
         LinkedHashMap txKeys = subFlow(new SwapIdentitiesFlow(clearingHouse));
         boolean size = txKeys.size() == 2;
         if (!size) {
@@ -133,46 +132,24 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
                 participants,
                 linearId);
 
-        getLogger().info("====Participants");
-        getLogger().info(participants.toString());
-
-        getLogger().info("====our Identity");
-        getLogger().info(getOurIdentity().getName().toString());
-
-        getLogger().info("====oBuyer identity - should be same ");
-        getLogger().info(this.resolveIdentity(this.getServiceHub(),assetTransfer.getSecurityBuyer()).getName().toString());
-
-
-       /* if (this.getOurIdentity().getName() != this.resolveIdentity(this.getServiceHub(), assetTransfer.getSecurityBuyer()).getName()) {
-            throw new InvalidPartyException("Flow must be initiated by Lender Of Cash.");
-        } */
-
         progressTracker.setCurrentStep(BUILDING);
 
         PublicKey ourSigningKey = assetTransfer.getSecurityBuyer().getOwningKey();
-
-        getLogger().info(assetTransfer.getSecurityBuyer().getOwningKey().toString());
-        getLogger().info(clearingHouse.getOwningKey().toString());
-        getLogger().info(assetTransfer.getSecuritySeller().getOwningKey().toString());
 
         List<PublicKey> requiredSigners = Arrays.asList(
                 getOurIdentity().getOwningKey(),
                 clearingHouse.getOwningKey(),
                 assetTransfer.getSecuritySeller().getOwningKey());
 
-        getLogger().info(requiredSigners.toString());
-
         final Command<AssetTransferContract.Commands.ConfirmRequest> command = new Command(
                 new AssetTransferContract.Commands.ConfirmRequest(),requiredSigners);
 
-        // We create a transaction builder and add the components.
         TransactionBuilder txBuilder = new TransactionBuilder(notary)
                 .addInputState(input)
                 .addOutputState(assetTransfer, AssetTransferContract.ASSET_TRANSFER_CONTRACT_ID)
                 .addCommand(command)
                 .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(60));
 
-        // Signing the transaction.
         progressTracker.setCurrentStep(SIGNING);
         SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
 
@@ -218,8 +195,6 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
 
         Set<FlowSession> otherPartySession = CollectionsKt.toSet(otherSideSession);
 
-        getLogger().info(otherPartySession.toString());
-
         progressTracker.setCurrentStep(IDENTITY_SYNC);
 
         this.subFlow(new IdentitySyncFlow.Send(
@@ -227,7 +202,6 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
                 txBuilder.toWireTransaction(getServiceHub()),
                 IDENTITY_SYNC.childProgressTracker()));
 
-        // Obtaining the counter-party's signature.
         progressTracker.setCurrentStep(COLLECTING);
 
         final SignedTransaction fullySignedTx = subFlow(
@@ -237,7 +211,6 @@ public class ConfirmAssetTransferRequestInitiatorFlow extends AbstractConfirmAss
                         CollectSignaturesFlow.tracker()));
 
 
-        // Finalising the transaction.
         progressTracker.setCurrentStep(FINALISING);
         return subFlow(new FinalityFlow(fullySignedTx,FINALISING.childProgressTracker()));
 

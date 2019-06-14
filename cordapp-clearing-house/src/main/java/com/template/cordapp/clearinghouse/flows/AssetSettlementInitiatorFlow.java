@@ -2,7 +2,6 @@ package com.template.cordapp.clearinghouse.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
 import com.google.common.collect.ImmutableSet;
-import com.template.cordapp.common.exception.InvalidPartyException;
 import com.template.cordapp.common.flows.IdentitySyncFlow;
 import com.template.cordapp.common.flows.ReceiveTransactionUnVerifiedFlow;
 import com.template.cordapp.contract.AssetTransferContract;
@@ -19,7 +18,6 @@ import com.template.cordapp.state.Asset;
 
 import com.template.cordapp.state.AssetTransfer;
 import kotlin.collections.CollectionsKt;
-import net.corda.confidential.IdentitySyncFlow.Receive;
 import net.corda.core.contracts.Command;
 import net.corda.core.contracts.CommandWithParties;
 import net.corda.core.contracts.StateAndRef;
@@ -41,8 +39,8 @@ import static com.template.cordapp.state.RequestStatus.TRANSFERRED;
  * It accepts the [AssetTransfer] state's [linearId] as input to start this flow and collects the [Cash] and [Asset] input and output states from counter-party.
  * For demo:
  * 1. Clearing House set requestStatus to [RequestStatus.TRANSFERRED] if everything is okay
- *    (i.e. by offline verifying the data of [AssetTransfer.asset] is valid).
- *
+ * (i.e. by offline verifying the data of [AssetTransfer.asset] is valid).
+ * <p>
  * On successful completion of a flow, [Asset] state ownership is transferred to `Buyer` party
  * and [Cash] tokens equals to [Asset.purchaseCost] is transferred to `Seller` party.
  */
@@ -71,22 +69,22 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
 
     };
 
-    private final ProgressTracker.Step COLLECTING = new ProgressTracker.Step("Collecting counterparty signature.") {
+    private final ProgressTracker.Step COLLECTING = new ProgressTracker.Step("Collecting counter-party signature.") {
         @Override
         public ProgressTracker childProgressTracker() {
             return CollectSignaturesFlow.Companion.tracker();
         }
     };
 
-        final ProgressTracker progressTracker = new ProgressTracker(
-                INITIALISING,
-                BUILDING,
-                COLLECT_STATES,
-                IDENTITY_SYNC,
-                SIGNING,
-                COLLECTING,
-                FINALISING
-        );
+    final ProgressTracker progressTracker = new ProgressTracker(
+            INITIALISING,
+            BUILDING,
+            COLLECT_STATES,
+            IDENTITY_SYNC,
+            SIGNING,
+            COLLECTING,
+            FINALISING
+    );
 
     @Override
     public ProgressTracker getProgressTracker() {
@@ -103,13 +101,12 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
     public SignedTransaction call() throws FlowException {
 
         Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
-        //initialization
+
         progressTracker.setCurrentStep(INITIALISING);
 
         StateAndRef<AssetTransfer> input = this.loadState(this.getServiceHub(), this.linearId, AssetTransfer.class);
 
         List participants = input.getState().getData().getParticipants();
-        getLogger().info("Participants :"+participants);
 
         Asset asset = input.getState().getData().getAsset();
 
@@ -124,46 +121,16 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
                 participants,
                 linearId);
 
-        getLogger().info("========getOurIDentity.getname");
-        getLogger().info(getOurIdentity().getName().toString());
-
-        getLogger().info("========resolved identity");
-        getLogger().info(this.resolveIdentity(this.getServiceHub(), assetTransfer.getClearingHouse()).getName().toString());
-
-       /* if (getOurIdentity().getName() != this.resolveIdentity(getServiceHub(), assetTransfer.getClearingHouse()).getName()) {
-            throw new InvalidPartyException("Flow must be initiated by Custodian.");
-        } */
-
-        getLogger().info("==================Participants");
-
-        getLogger().info(assetTransfer.getParticipants().toString());
-
-        getLogger().info("============= Required keys that are being sent");
-        getLogger().info(assetTransfer.getClearingHouse().getOwningKey().toString());
-        getLogger().info(assetTransfer.getSecuritySeller().getOwningKey().toString());
-        getLogger().info(assetTransfer.getSecurityBuyer().getOwningKey().toString());
-
-        getLogger().info("============== Clearing house extracted from participants");
-        getLogger().info(assetTransfer.getParticipants().get(2).getOwningKey().toString());
-        getLogger().info(assetTransfer.getParticipants().get(1).getOwningKey().toString());
-        getLogger().info(assetTransfer.getParticipants().get(0).getOwningKey().toString());
-
-        getLogger().info("=============== Clearing house from our identity * this should match with clearing house above");
-        getLogger().info(getOurIdentity().getOwningKey().toString());
-
 
         List<PublicKey> requiredSigners = Arrays.asList(
                 assetTransfer.getSecurityBuyer().getOwningKey(),
                 assetTransfer.getSecuritySeller().getOwningKey(),
                 getOurIdentity().getOwningKey());
 
-        getLogger().info("Required Signers"+requiredSigners);
-
         final Command<AssetTransferContract.Commands.SettleRequest> command = new Command(
                 new AssetTransferContract.Commands.SettleRequest(), requiredSigners);
 
 
-        // build
         progressTracker.setCurrentStep(BUILDING);
         TransactionBuilder txBuilder = new TransactionBuilder(notary)
                 .addInputState(input)
@@ -171,42 +138,23 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
                 .addCommand(command)
                 .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(60));
 
-        //collect states
         progressTracker.setCurrentStep(COLLECT_STATES);
 
-        //Create temporary partial transaction.
         SignedTransaction tempPtx = getServiceHub().signInitialTransaction(txBuilder);
 
-        getLogger().info("======= temp partial txn signed by us");
-
-        //Send partial transaction to Security Owner i.e. `Seller`.
         FlowSession securitySellerSession = this.initiateFlow(this.resolveIdentity(this.getServiceHub(), assetTransfer.getSecuritySeller()));
         subFlow(new SendTransactionFlow(securitySellerSession, tempPtx));
 
-        getLogger().info("======= temp partial to security seller");
-
-        //Receive transaction with input and output of Asset state.
         SignedTransaction assetPtx = subFlow((new ReceiveTransactionUnVerifiedFlow(securitySellerSession)));
 
-        getLogger().info("======= Receive transaction with input and output of Asset state.");
-
-        //Send partial transaction to `Buyer`.
         FlowSession securityBuyerSession = this.initiateFlow(this.resolveIdentity(this.getServiceHub(), assetTransfer.getSecurityBuyer()));
         subFlow((new SendTransactionFlow(securityBuyerSession, tempPtx)));
 
-        getLogger().info("======= temp partial to security Buyer");
-
-        //Send flows ID for soft lock of the cash state.
         securityBuyerSession.send(txBuilder.getLockId());
 
-        getLogger().info("======= soft lock of the cash state");
-
-        //Receive and register the anonymous identity were created for Cash transfer.
         this.subFlow(((new net.corda.confidential.IdentitySyncFlow.Receive(securityBuyerSession))));
 
-        //Receive transaction with input and output state of Cash state.
         SignedTransaction cashPtx = this.subFlow((new ReceiveTransactionUnVerifiedFlow(securityBuyerSession)));
-        //Add Asset states and commands to origin Transaction Builder `txb`.
 
         LedgerTransaction assetLtx = null;
         try {
@@ -275,30 +223,22 @@ public final class AssetSettlementInitiatorFlow extends AbstractAssetSettlementF
             txBuilder.addCommand(new Command(it.getValue(), it.getSigners()));
         }
 
-
-        // Creating a session with the other party.
-        ImmutableSet<FlowSession> otherPartySession = ImmutableSet.of(securityBuyerSession,securitySellerSession);
-
-        getLogger().info("Other Party Session"+otherPartySession);
-
+        ImmutableSet<FlowSession> otherPartySession = ImmutableSet.of(securityBuyerSession, securitySellerSession);
 
         progressTracker.setCurrentStep(IDENTITY_SYNC);
         this.subFlow(new IdentitySyncFlow.Send(otherPartySession,
                 txBuilder.toWireTransaction(getServiceHub()),
                 IDENTITY_SYNC.childProgressTracker()));
 
-        // Signature
         progressTracker.setCurrentStep(SIGNING);
         SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
 
-        // Obtaining the counter-party's signature.
         progressTracker.setCurrentStep(COLLECTING);
         final SignedTransaction fullySignedTx = subFlow(
                 new CollectSignaturesFlow(signedTx, otherPartySession, CollectionsKt.listOf(assetTransfer.getClearingHouse().getOwningKey()), CollectSignaturesFlow.tracker()));
 
-        //finalize
         progressTracker.setCurrentStep(FINALISING);
-        return subFlow(new FinalityFlow(fullySignedTx,FINALISING.childProgressTracker()));
+        return subFlow(new FinalityFlow(fullySignedTx, FINALISING.childProgressTracker()));
 
     }
 }

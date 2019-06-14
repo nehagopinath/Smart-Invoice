@@ -202,7 +202,7 @@ app.controller('TransferCtrl', function ($http, $location, $uibModalInstance, $u
 
                                 let createTransferData = $.param({
                                     cusipTr: modalTransfer.form.cusipTr,
-                                    transferBuyer : "O=SecurityBuyer,L=New York,C=US"
+                                    transferBuyer : "O=Buyer,L=New York,C=US"
                                 });
 
                                 let createTransferHeaders = {
@@ -259,7 +259,7 @@ app.controller('ConfirmCtrl', function ($http, $location, $uibModalInstance, $ui
 
                                 let createConfirmData = $.param({
                                     linearId: modalConfirm.form.linearId,
-                                    clearingHouse : "O=ClearingHouse,L=New York,C=US"
+                                    clearingNode : "O=ClearingNode,L=New York,C=US"
                                 });
 
                                 let createConfirmHeaders = {

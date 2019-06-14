@@ -65,11 +65,10 @@ public class CreateAssetStateFlow {
         @Suspendable
         @Override
         public SignedTransaction call() throws FlowException {
-            // We retrieve the notary identity from the network map.
+
             Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
             final Command<AssetContract.Commands.Create> command = new Command<>(new AssetContract.Commands.Create(), getOurIdentity().getOwningKey());
 
-            // We create the transaction components.
             progressTracker.setCurrentStep(INITIALISING);
 
             System.out.println(getOurIdentity());
@@ -77,17 +76,15 @@ public class CreateAssetStateFlow {
             Asset asset = new Asset(cusip, assetName, purchaseCost, getOurIdentity());
 
             progressTracker.setCurrentStep(BUILDING);
-            // We create a transaction builder and add the components.
+
             TransactionBuilder txBuilder = new TransactionBuilder(notary)
                     .addOutputState(asset, AssetContract.ASSET_CONTRACT_ID)
                     .addCommand(command)
                     .setTimeWindow(getServiceHub().getClock().instant(), Duration.ofSeconds(30));
 
-            // Signing the transaction.
             progressTracker.setCurrentStep(SIGNING);
             SignedTransaction signedTx = getServiceHub().signInitialTransaction(txBuilder);
 
-            // Finalising the transaction.
             progressTracker.setCurrentStep(FINALISING);
             SignedTransaction finalTxn;
             finalTxn = subFlow(new FinalityFlow(signedTx, FINALISING.childProgressTracker()));

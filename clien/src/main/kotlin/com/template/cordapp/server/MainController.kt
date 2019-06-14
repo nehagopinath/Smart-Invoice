@@ -138,17 +138,17 @@ class MainController(rpc: NodeRPCConnection) {
     fun createTransfer(request: HttpServletRequest): ResponseEntity<String> {
 
         val cusipTr = request.getParameter("cusipTr")
-        val securityBuyer = request.getParameter("transferBuyer")
+        val Buyer = request.getParameter("transferBuyer")
 
 
         if(cusipTr == null){
             return ResponseEntity.badRequest().body("Query parameter 'cusipTr' must not be null.\n")
         }
-        if(securityBuyer == null){
-            return ResponseEntity.badRequest().body("Query parameter 'securityBuyer' must not be null.\n")
+        if(Buyer == null){
+            return ResponseEntity.badRequest().body("Query parameter 'Buyer' must not be null.\n")
         }
 
-        val secBuyerName=CordaX500Name.parse(securityBuyer)
+        val secBuyerName=CordaX500Name.parse(Buyer)
         val otherParty = proxy.wellKnownPartyFromX500Name(secBuyerName) ?: return ResponseEntity.badRequest().body("Party named $secBuyerName cannot be found.\n")
 
         return try {
@@ -172,18 +172,18 @@ class MainController(rpc: NodeRPCConnection) {
     fun createConfirm(request: HttpServletRequest): ResponseEntity<String> {
 
         val linearId = request.getParameter("linearId")
-        val clearingHouse = request.getParameter("clearingHouse")
+        val clearingNode = request.getParameter("clearingNode")
 
         val linId = UniqueIdentifier.fromString(linearId)
         if(linearId == null){
             return ResponseEntity.badRequest().body("Query parameter 'linearId' must not be null.\n")
         }
-        if(clearingHouse == null){
-            return ResponseEntity.badRequest().body("Query parameter 'clearingHouse' must not be null.\n")
+        if(clearingNode == null){
+            return ResponseEntity.badRequest().body("Query parameter 'clearingNode' must not be null.\n")
         }
 
-        val clearingHouseName=CordaX500Name.parse(clearingHouse)
-        val cleHouse = proxy.wellKnownPartyFromX500Name(clearingHouseName) ?: return ResponseEntity.badRequest().body("Party named $clearingHouseName cannot be found.\n")
+        val clearingNodeName=CordaX500Name.parse(clearingNode)
+        val cleHouse = proxy.wellKnownPartyFromX500Name(clearingNodeName) ?: return ResponseEntity.badRequest().body("Party named $clearingNodeName cannot be found.\n")
 
         return try {
             val confirmedTr = proxy.startTrackedFlow(::ConfirmAssetTransferRequestInitiatorFlow,linId,cleHouse).returnValue.getOrThrow()
